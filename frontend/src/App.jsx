@@ -3,7 +3,7 @@ import { BrowserRouter,Routes,Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/auth/Login";
 import Calculator from "./pages/Calculator";
-import History from "./pages/Dashboard";
+import Dashboard from "./pages/Dashboard";
 import Register from "./pages/auth/Register";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import ForgotPassword from "./pages/auth/ForgotPassword";
@@ -36,10 +36,10 @@ element={
 />
 
 <Route
-path="/history"
+path="/dashboard"
 element={
 <ProtectedRoute>
-<History/>
+<Dashboard/>
 </ProtectedRoute>
 }
 />

@@ -41,7 +41,7 @@ Home
 Calculator
 </Link>
 
-<Link to="/history" className="hover:text-cyan-400">
+<Link to="/dashboard" className="hover:text-cyan-400">
 Dashboard
 </Link>
 

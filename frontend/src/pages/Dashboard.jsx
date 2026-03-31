@@ -1,240 +1,175 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
+import { motion } from "framer-motion"
+import {
+  getDashboardStats,
+  getRecentProjects,
+  analyzeFloorplan
+} from "../services/api"
 
-import API from "../services/api"
+import StatsCards from "../components/dashboard/StatsCards"
+import RecentProjects from "../components/dashboard/RecentProjects"
+import QuickUpload from "../components/dashboard/QuickUpload"
+import CostTrendChart from "../components/dashboard/CostTrendChart"
+import Navbar from "@/components/Navbar"
+import Footer from "@/components/Footer"
 
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
-import { Button } from "../components/ui/button"
-import MainLayout from "@/layout/MainLayout"
+const Dashboard = () => {
+  const navigate = useNavigate()
 
-export default function Dashboard() {
+  const [stats, setStats] = useState({
+    total_projects: 0,
+    ai_projects: 0,
+    manual_projects: 0,
+    total_cost: 0,
+    total_area_sqft: 0,
+    total_rooms: 0
+  })
 
-const navigate = useNavigate()
+  const [projects, setProjects] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [analyzing, setAnalyzing] = useState(false)
+  const [analysisProgress, setAnalysisProgress] = useState(0)
+  const [analysisResult, setAnalysisResult] = useState(null)
 
-const [stats,setStats] = useState({
-total_calculations:0,
-total_cost:0,
-recent:[]
-})
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true)
+      await Promise.all([fetchStats(), fetchProjects()])
+      setLoading(false)
+    }
+    loadData()
+  }, [])
 
-useEffect(()=>{
+  const fetchStats = async () => {
+    try {
+      const res = await getDashboardStats()
+      setStats(res.data)
+    } catch (err) {
+      console.error("Stats error:", err)
+    }
+  }
 
-fetchStats()
+  const fetchProjects = async () => {
+    try {
+      const res = await getRecentProjects()
+      setProjects(res.data || [])
+    } catch (err) {
+      console.error("Projects error:", err)
+    }
+  }
 
-},[])
+  const handleAnalyze = useCallback(async (file) => {
+    if (!file) return
 
-const fetchStats = async()=>{
+    setAnalyzing(true)
+    setAnalysisProgress(0)
+    setAnalysisResult(null)
 
-try{
+    const progressInterval = setInterval(() => {
+      setAnalysisProgress(prev => {
+        if (prev >= 90) {
+          clearInterval(progressInterval)
+          return 90
+        }
+        return prev + Math.random() * 15
+      })
+    }, 500)
 
-const res = await API.get("/calculator/stats")
+    const formData = new FormData()
+    formData.append("file", file)
 
-setStats(res.data)
+    try {
+      const res = await analyzeFloorplan(formData)
+      clearInterval(progressInterval)
+      setAnalysisProgress(100)
+      setAnalysisResult(res.data)
+      await Promise.all([fetchStats(), fetchProjects()])
 
-}catch(err){
+      setTimeout(() => {
+        navigate("/report", { state: { result: res.data } })
+      }, 1500)
+    } catch (err) {
+      console.error("Analysis failed:", err)
+      clearInterval(progressInterval)
+      setAnalysisProgress(0)
+      setAnalyzing(false)
+    }
+  }, [navigate])
 
-console.log(err)
+  /* ── Get current hour for greeting ── */
+  const hour = new Date().getHours()
+  let greeting = "Good Morning"
+  if (hour >= 12 && hour < 17) greeting = "Good Afternoon"
+  else if (hour >= 17) greeting = "Good Evening"
 
+  const username = localStorage.getItem("username") || "Builder"
+
+  return (
+    
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+      className="p-4 md:p-6 lg:p-8 space-y-6"
+    >
+        <Navbar />
+      {/* ── Welcome Header ── */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+      >
+        <div>
+          <h1 className="text-white text-2xl md:text-3xl font-bold ">
+            HELLO..{greeting}, {username}! 
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Here&apos;s an overview of your construction estimates
+          </p>
+        </div>
+
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.3, type: "spring" }}
+          className="hidden md:flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full"
+        >
+          <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
+          <span className="text-white text-sm text-primary font-medium">
+            AI Pipeline Ready
+          </span>
+        </motion.div>
+      </motion.div>
+
+      {/* ── Stats Cards ── */}
+      <StatsCards stats={stats} loading={loading} />
+
+      {/* ── Main Content Grid ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <div className="lg:col-span-3">
+          <RecentProjects
+            projects={projects}
+            loading={loading}
+            onViewAll={() => navigate("/projects")}
+          />
+        </div>
+        <div className="lg:col-span-2">
+          <QuickUpload
+            onAnalyze={handleAnalyze}
+            analyzing={analyzing}
+            progress={analysisProgress}
+            result={analysisResult}
+          />
+        </div>
+      </div>
+
+      {/* ── Cost Trend Chart ── */}
+      <CostTrendChart projects={projects} />
+      <Footer/>
+    </motion.div>
+  )
 }
 
-}
-
-return(
-<MainLayout>
-<div className="min-h-screen bg-slate-950 text-white p-10">
-
-{/* TITLE */}
-
-<h1 className="text-4xl font-bold text-cyan-400 mb-10">
-
-Engineer Dashboard
-
-</h1>
-
-{/* STATS */}
-
-<div className="grid md:grid-cols-3 gap-6 mb-12">
-
-<Card className="bg-slate-900 border-slate-800">
-
-<CardHeader>
-<CardTitle>Total Calculations</CardTitle>
-</CardHeader>
-
-<CardContent>
-<p className="text-3xl text-cyan-400">
-{stats.total_calculations}
-</p>
-</CardContent>
-
-</Card>
-
-
-<Card className="bg-slate-900 border-slate-800">
-
-<CardHeader>
-<CardTitle>Total Estimated Cost</CardTitle>
-</CardHeader>
-
-<CardContent>
-<p className="text-3xl text-cyan-400">
-₹{stats.total_cost}
-</p>
-</CardContent>
-
-</Card>
-
-
-<Card className="bg-slate-900 border-slate-800">
-
-<CardHeader>
-<CardTitle>AI Floorplan</CardTitle>
-</CardHeader>
-
-<CardContent>
-
-<Button
-className="bg-cyan-500 hover:bg-cyan-600"
-onClick={()=>navigate("/floorplan")}
->
-
-Upload Floorplan
-
-</Button>
-
-</CardContent>
-
-</Card>
-
-</div>
-
-
-{/* QUICK ACTIONS */}
-
-<h2 className="text-2xl font-bold mb-6">
-
-Quick Actions
-
-</h2>
-
-<div className="grid md:grid-cols-3 gap-6 mb-12">
-
-<Card
-className="bg-slate-900 border-slate-800 cursor-pointer hover:border-cyan-400"
-onClick={()=>navigate("/calculator")}
->
-
-<CardContent className="p-6">
-
-<h3 className="text-xl font-bold text-cyan-400">
-
-Concrete Calculator
-
-</h3>
-
-<p className="text-gray-400 mt-2">
-
-Estimate concrete and materials instantly.
-
-</p>
-
-</CardContent>
-
-</Card>
-
-
-<Card
-className="bg-slate-900 border-slate-800 cursor-pointer hover:border-cyan-400"
-onClick={()=>navigate("/history")}
->
-
-<CardContent className="p-6">
-
-<h3 className="text-xl font-bold text-cyan-400">
-
-Calculation History
-
-</h3>
-
-<p className="text-gray-400 mt-2">
-
-View previous project estimates.
-
-</p>
-
-</CardContent>
-
-</Card>
-
-
-<Card
-className="bg-slate-900 border-slate-800 cursor-pointer hover:border-cyan-400"
-onClick={()=>navigate("/profile")}
->
-
-<CardContent className="p-6">
-
-<h3 className="text-xl font-bold text-cyan-400">
-
-Engineer Profile
-
-</h3>
-
-<p className="text-gray-400 mt-2">
-
-Manage account settings.
-
-</p>
-
-</CardContent>
-
-</Card>
-
-</div>
-
-
-{/* RECENT CALCULATIONS */}
-
-<h2 className="text-2xl font-bold mb-6">
-
-Recent Calculations
-
-</h2>
-
-<div className="grid md:grid-cols-3 gap-6">
-
-{stats.recent?.map((calc,i)=>(
-
-<Card key={i} className="bg-slate-900 border-slate-800">
-
-<CardContent className="p-6">
-
-<p className="text-gray-400">
-Area
-</p>
-
-<p className="text-xl">
-{calc.area_sqft} sqft
-</p>
-
-<p className="text-gray-400 mt-3">
-Cost
-</p>
-
-<p className="text-cyan-400 text-xl">
-₹{calc.total_cost}
-</p>
-
-</CardContent>
-
-</Card>
-
-))}
-
-</div>
-
-</div>
-</MainLayout>
-)
-
-}
+export default Dashboard

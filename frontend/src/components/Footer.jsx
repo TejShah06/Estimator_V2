@@ -11,7 +11,7 @@ return(
 <div>
 
 <h2 className="text-xl font-bold text-white mb-4">
-AI Smart Estimator
+AI Smart Estimator 
 </h2>
 
 <p>

@@ -5,6 +5,7 @@
 │   │   │   ├── routes
 │   │   │   │   ├── auth.py
 │   │   │   │   ├── calculator.py
+│   │   │   │   ├── floorplan.py
 │   │   │   │   ├── user.py
 │   │   │   │   └── __pycache__
 │   │   │   │       ├── auth.cpython-314.pyc
@@ -40,13 +41,28 @@
 │   │   │       ├── estimate_schema.cpython-314.pyc
 │   │   │       └── user_schema.cpython-314.pyc
 │   │   ├── services
+│   │   │   ├── AiService
+│   │   │   │   ├── estimation_engine.py
+│   │   │   │   ├── geometry_engine.py
+│   │   │   │   ├── ocr_engine.py
+│   │   │   │   ├── preprocessing.py
+│   │   │   │   ├── preview_generator.py
+│   │   │   │   ├── sam_segmentor.py
+│   │   │   │   ├── scale_calculator.py
+│   │   │   │   ├── skeletonizer.py
+│   │   │   │   └── yolo_detector.py
 │   │   │   ├── calculator_services.py
+│   │   │   ├── floorplan_service.py
 │   │   │   └── __pycache__
 │   │   │       ├── calculator_services.cpython-314.pyc
-│   │   │       └── floorplan_services.cpython-314.pyc
+│   │   │       ├── floorplan_service.cpython-314.pyc
+│   │   │       ├── floorplan_services.cpython-314.pyc
+│   │   │       └── room_graph.cpython-314.pyc
 │   │   └── __pycache__
 │   │       └── main.cpython-314.pyc
 │   ├── estimator.db
+│   ├── previews
+│   │   └── preview.jpg
 │   ├── requirements.txt
 │   └── venv
 │       ├── Include
@@ -8923,6 +8939,21 @@
 │       │       │   │   └── LICENSE
 │       │       │   ├── METADATA
 │       │       │   ├── RECORD
+│       │       │   └── WHEEL
+│       │       ├── pytesseract
+│       │       │   ├── pytesseract.py
+│       │       │   ├── __init__.py
+│       │       │   └── __pycache__
+│       │       │       ├── pytesseract.cpython-314.pyc
+│       │       │       └── __init__.cpython-314.pyc
+│       │       ├── pytesseract-0.3.13.dist-info
+│       │       │   ├── entry_points.txt
+│       │       │   ├── INSTALLER
+│       │       │   ├── LICENSE
+│       │       │   ├── METADATA
+│       │       │   ├── RECORD
+│       │       │   ├── REQUESTED
+│       │       │   ├── top_level.txt
 │       │       │   └── WHEEL
 │       │       ├── python_bidi-0.6.7.dist-info
 │       │       │   ├── entry_points.txt
@@ -33850,6 +33881,7 @@
 │       │   ├── pyrsa-priv2pub.exe
 │       │   ├── pyrsa-sign.exe
 │       │   ├── pyrsa-verify.exe
+│       │   ├── pytesseract.exe
 │       │   ├── python.exe
 │       │   ├── pythonw.exe
 │       │   ├── tiff2fsspec.exe
@@ -33866,6 +33898,141 @@
 │               └── man1
 │                   ├── isympy.1
 │                   └── ttx.1
+├── Estimator_V2
+│   ├── backend
+│   │   ├── app
+│   │   │   ├── api
+│   │   │   │   ├── deps.py
+│   │   │   │   ├── routes
+│   │   │   │   │   ├── auth.py
+│   │   │   │   │   ├── calculator.py
+│   │   │   │   │   ├── user.py
+│   │   │   │   │   └── __pycache__
+│   │   │   │   │       ├── auth.cpython-314.pyc
+│   │   │   │   │       ├── calculator.cpython-314.pyc
+│   │   │   │   │       ├── floorplan.cpython-314.pyc
+│   │   │   │   │       └── user.cpython-314.pyc
+│   │   │   │   └── __pycache__
+│   │   │   │       └── deps.cpython-314.pyc
+│   │   │   ├── core
+│   │   │   │   ├── config.py
+│   │   │   │   ├── security.py
+│   │   │   │   └── __pycache__
+│   │   │   │       └── security.cpython-314.pyc
+│   │   │   ├── db
+│   │   │   │   ├── base.py
+│   │   │   │   ├── database.py
+│   │   │   │   └── __pycache__
+│   │   │   │       ├── base.cpython-314.pyc
+│   │   │   │       └── database.cpython-314.pyc
+│   │   │   ├── main.py
+│   │   │   ├── modelML
+│   │   │   │   └── best.pt
+│   │   │   ├── models
+│   │   │   │   ├── estimate.py
+│   │   │   │   ├── user.py
+│   │   │   │   └── __pycache__
+│   │   │   │       ├── estimate.cpython-314.pyc
+│   │   │   │       └── user.cpython-314.pyc
+│   │   │   ├── schemas
+│   │   │   │   ├── estimate_schema.py
+│   │   │   │   ├── user_schema.py
+│   │   │   │   └── __pycache__
+│   │   │   │       ├── estimate_schema.cpython-314.pyc
+│   │   │   │       └── user_schema.cpython-314.pyc
+│   │   │   ├── services
+│   │   │   │   ├── calculator_services.py
+│   │   │   │   ├── floorplan_service.py
+│   │   │   │   └── __pycache__
+│   │   │   │       ├── calculator_services.cpython-314.pyc
+│   │   │   │       └── floorplan_services.cpython-314.pyc
+│   │   │   └── __pycache__
+│   │   │       └── main.cpython-314.pyc
+│   │   ├── estimator.db
+│   │   └── requirements.txt
+│   ├── FILE-TREE.txt
+│   ├── frontend
+│   │   ├── components.json
+│   │   ├── eslint.config.js
+│   │   ├── index.html
+│   │   ├── package-lock.json
+│   │   ├── package.json
+│   │   ├── postcss.config.js
+│   │   ├── public
+│   │   │   └── vite.svg
+│   │   ├── README.md
+│   │   ├── src
+│   │   │   ├── App.css
+│   │   │   ├── App.jsx
+│   │   │   ├── assets
+│   │   │   │   └── react.svg
+│   │   │   ├── components
+│   │   │   │   ├── CostComparisonChart.jsx
+│   │   │   │   ├── Footer.jsx
+│   │   │   │   ├── MaterialCostPieChart.jsx
+│   │   │   │   ├── MaterialTable.jsx
+│   │   │   │   ├── Navbar.jsx
+│   │   │   │   └── ui
+│   │   │   │       ├── button.tsx
+│   │   │   │       ├── card.tsx
+│   │   │   │       ├── input.tsx
+│   │   │   │       └── select.tsx
+│   │   │   ├── index.css
+│   │   │   ├── layout
+│   │   │   │   └── MainLayout.jsx
+│   │   │   ├── lib
+│   │   │   │   └── utils.ts
+│   │   │   ├── main.jsx
+│   │   │   ├── pages
+│   │   │   │   ├── auth
+│   │   │   │   │   ├── ForgotPassword.jsx
+│   │   │   │   │   ├── Login.jsx
+│   │   │   │   │   ├── Register.jsx
+│   │   │   │   │   └── ResetPassword.jsx
+│   │   │   │   ├── Calculator.jsx
+│   │   │   │   ├── Dashboard.jsx
+│   │   │   │   └── Home.jsx
+│   │   │   ├── routes
+│   │   │   │   └── ProtectedRoute.jsx
+│   │   │   └── services
+│   │   │       └── api.js
+│   │   ├── tailwind.config.js
+│   │   ├── tsconfig.json
+│   │   └── vite.config.js
+│   └── runs
+│       └── detect
+│           ├── predict
+│           │   └── plan.jpg
+│           ├── train
+│           │   └── args.yaml
+│           ├── train2
+│           │   └── args.yaml
+│           └── train3
+│               ├── args.yaml
+│               ├── BoxF1_curve.png
+│               ├── BoxPR_curve.png
+│               ├── BoxP_curve.png
+│               ├── BoxR_curve.png
+│               ├── confusion_matrix.png
+│               ├── confusion_matrix_normalized.png
+│               ├── labels.jpg
+│               ├── results.csv
+│               ├── results.png
+│               ├── train_batch0.jpg
+│               ├── train_batch1.jpg
+│               ├── train_batch2.jpg
+│               ├── train_batch4200.jpg
+│               ├── train_batch4201.jpg
+│               ├── train_batch4202.jpg
+│               ├── val_batch0_labels.jpg
+│               ├── val_batch0_pred.jpg
+│               ├── val_batch1_labels.jpg
+│               ├── val_batch1_pred.jpg
+│               ├── val_batch2_labels.jpg
+│               ├── val_batch2_pred.jpg
+│               └── weights
+│                   ├── best.pt
+│                   └── last.pt
 ├── FILE-TREE.txt
 ├── frontend
 │   ├── components.json
@@ -33920,11 +34087,9 @@
         ├── predict
         │   └── plan.jpg
         ├── train
-        │   ├── args.yaml
-        │   └── weights
+        │   └── args.yaml
         ├── train2
-        │   ├── args.yaml
-        │   └── weights
+        │   └── args.yaml
         └── train3
             ├── args.yaml
             ├── BoxF1_curve.png
