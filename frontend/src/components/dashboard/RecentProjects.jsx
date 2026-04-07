@@ -577,7 +577,7 @@ const RecentProjects = ({ projects, loading, onViewAll, onProjectsChange }) => {
         projectName={deleteModal.project?.project_name}
         isDeleting={isDeleting}
       />
-    </>
+    </> 
   )
 }
 
