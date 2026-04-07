@@ -36,6 +36,7 @@ export const getRecentProjects = () =>
   API.get("/projects/recent")
 
 
+
 /* ---------------- FLOORPLAN ---------------- */
 
 export const analyzeFloorplan = (formData) =>

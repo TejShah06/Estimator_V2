@@ -24,12 +24,12 @@ const cardVariants = {
   })
 }
 
-const formatCost = (value) => {
-  if (!value) return "0"
-  if (value >= 10000000) return `${(value / 10000000).toFixed(1)}Cr`
-  if (value >= 100000) return `${(value / 100000).toFixed(1)}L`
-  if (value >= 1000) return `${(value / 1000).toFixed(1)}K`
-  return value.toString()
+const formatCostData = (totalCost) => {
+  if (!totalCost) return { num: 0, suffix: "" }
+  if (totalCost >= 10000000) return { num: totalCost / 10000000, suffix: "Cr" }
+  if (totalCost >= 100000) return { num: totalCost / 100000, suffix: "L" }
+  if (totalCost >= 1000) return { num: totalCost / 1000, suffix: "K" }
+  return { num: totalCost, suffix: "" }
 }
 
 const StatCard = ({ icon: Icon, label, value, prefix, suffix, color, index, loading }) => {
@@ -90,7 +90,7 @@ const StatCard = ({ icon: Icon, label, value, prefix, suffix, color, index, load
           initial={{ width: 0 }}
           animate={{ width: `${Math.min((value || 0) * 10, 100)}%` }}
           transition={{ delay: index * 0.1 + 0.5, duration: 1 }}
-          className={`h-full rounded-full ${color.replace("bg-", "bg-")}`}
+          className={`h-full rounded-full ${color}`}
         />
       </div>
     </motion.div>
@@ -98,46 +98,59 @@ const StatCard = ({ icon: Icon, label, value, prefix, suffix, color, index, load
 }
 
 const StatsCards = ({ stats, loading }) => {
+  // Safely handle when stats is null/undefined
+  const safeStats = stats || {
+    total_projects: 0,
+    ai_projects: 0,
+    manual_projects: 0,
+    total_estimated_cost: 0,
+    total_area_sqft: 0,
+    total_rooms: 0
+  }
+
+  // Compute costData from stats
+  const costData = formatCostData(
+    safeStats.total_estimated_cost || safeStats.total_cost || 0
+  )
+
   const cards = [
     {
       icon: FolderOpen,
       label: "Total Projects",
-      value: stats.total_projects,
+      value: safeStats.total_projects,
       color: "bg-blue-500",
     },
     {
       icon: Brain,
       label: "AI Estimates",
-      value: stats.ai_projects,
+      value: safeStats.ai_projects,
       color: "bg-purple-500",
     },
     {
       icon: Calculator,
       label: "Manual Estimates",
-      value: stats.manual_projects,
+      value: safeStats.manual_projects,
       color: "bg-teal-500",
     },
     {
       icon: IndianRupee,
       label: "Total Cost",
-      value: parseFloat(formatCost(stats.total_cost)),
+      value: costData.num,
       prefix: "₹",
-      suffix: stats.total_cost >= 10000000 ? "Cr" :
-              stats.total_cost >= 100000 ? "L" :
-              stats.total_cost >= 1000 ? "K" : "",
+      suffix: costData.suffix,
       color: "bg-amber-500",
     },
     {
       icon: Ruler,
-      label: "Area Analyzed",
-      value: stats.total_area_sqft || 0,
+      label: "Total Area",
+      value: safeStats.total_area_sqft || 0,
       suffix: "sqft",
       color: "bg-green-500",
     },
     {
       icon: DoorOpen,
-      label: "Rooms Detected",
-      value: stats.total_rooms || 0,
+      label: "Rooms Found",
+      value: safeStats.total_rooms || 0,
       color: "bg-rose-500",
     },
   ]

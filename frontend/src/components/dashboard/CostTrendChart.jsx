@@ -39,6 +39,7 @@ const CostTrendChart = ({ projects }) => {
     cost: parseFloat(p.estimated_cost) || 0,
     area: parseFloat(p.total_area) || 0,
     rooms: parseInt(p.rooms_count) || 0,
+    type: p.source_type,
   }))
 
   // If no data, show sample data

@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react"
+import { useNavigate } from "react-router-dom"
 import { useDropzone } from "react-dropzone"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -8,16 +9,26 @@ import {
   CheckCircle2,
   AlertCircle,
   Loader2,
-  Zap
+  Zap,
+  Eye
 } from "lucide-react"
 
-const QuickUpload = ({ onAnalyze, analyzing, progress, result }) => {
+// ✅ CORRECTED PATH: ../../services/api
+import api from "../../services/api"
+
+const QuickUpload = () => {
+  const navigate = useNavigate()
+  
   const [file, setFile] = useState(null)
   const [preview, setPreview] = useState(null)
   const [error, setError] = useState(null)
+  const [analyzing, setAnalyzing] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [result, setResult] = useState(null)
 
   const onDrop = useCallback((acceptedFiles, rejectedFiles) => {
     setError(null)
+    setResult(null)
 
     if (rejectedFiles.length > 0) {
       setError("Invalid file. Please upload JPG, PNG, or BMP under 20MB")
@@ -53,11 +64,54 @@ const QuickUpload = ({ onAnalyze, analyzing, progress, result }) => {
     setFile(null)
     setPreview(null)
     setError(null)
+    setResult(null)
+    setProgress(0)
   }
 
-  const handleAnalyze = () => {
-    if (file) {
-      onAnalyze(file)
+  // ✅ Handle Analysis
+const handleAnalyze = async () => {
+  if (!file) return
+
+  try {
+    setAnalyzing(true)
+    setProgress(0)
+    setError(null)
+
+    const formData = new FormData()
+    formData.append("file", file)
+    formData.append("project_name", `Quick Analysis - ${new Date().toLocaleDateString()}`)
+
+    const response = await api.post("/floorplan/analyze", formData)
+
+    setProgress(100)
+    setResult(response.data)
+
+    // ✅ Add this safety check
+    if (!response.data || !response.data.id) {
+      console.error("Backend response missing ID:", response.data)
+      setError("Analysis succeeded but failed to save project ID.")
+      setAnalyzing(false)
+      return
+    }
+
+    // Now we know ID exists
+    setTimeout(() => {
+      navigate(`/report/ai-${response.data.id}`)
+    }, 1500)
+
+  } catch (err) {
+    console.error("Analysis failed:", err)
+    setError(err.response?.data?.detail || "Analysis failed.")
+    setProgress(0)
+  } finally {
+    setAnalyzing(false)
+  }
+}
+
+  // ✅ Manual View Report
+  const handleViewReport = () => {
+    if (result?.id) {
+      navigate(`/report/ai-${result.id}`)
     }
   }
 
@@ -157,7 +211,7 @@ const QuickUpload = ({ onAnalyze, analyzing, progress, result }) => {
               )}
 
               {/* Remove button */}
-              {!analyzing && (
+              {!analyzing && !result && (
                 <button
                   onClick={clearFile}
                   className="absolute top-2 right-2 p-1 bg-white rounded-full
@@ -179,6 +233,19 @@ const QuickUpload = ({ onAnalyze, analyzing, progress, result }) => {
                     <p className="text-white text-sm mt-2 font-medium">
                       Analyzing...
                     </p>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Success overlay */}
+              {result && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="absolute inset-0 bg-green-500/20 flex items-center justify-center"
+                >
+                  <div className="text-center">
+                    <CheckCircle2 className="w-12 h-12 text-green-600 mx-auto" />
                   </div>
                 </motion.div>
               )}
@@ -222,18 +289,32 @@ const QuickUpload = ({ onAnalyze, analyzing, progress, result }) => {
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-2 p-3 bg-green-50 rounded-lg mb-4"
+                className="mb-4"
               >
-                <CheckCircle2 className="w-5 h-5 text-green-500" />
-                <div>
-                  <p className="text-sm font-medium text-green-700">
-                    Analysis Complete!
-                  </p>
-                  <p className="text-xs text-green-600">
-                    {result.rooms_count} rooms • {result.doors_count} doors •
-                    {result.windows_count} windows
-                  </p>
+                <div className="flex items-start gap-2 p-3 bg-green-50 rounded-lg mb-3">
+                  <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-green-700">
+                      Analysis Complete!
+                    </p>
+                    <p className="text-xs text-green-600 mt-1">
+                      {result.rooms_count} rooms • {result.doors_count} doors • {result.windows_count} windows
+                    </p>
+                  </div>
                 </div>
+
+                {/* View Report Button */}
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleViewReport}
+                  className="w-full py-3 bg-green-600 hover:bg-green-700
+                             text-white font-medium rounded-xl
+                             transition-colors flex items-center justify-center gap-2"
+                >
+                  <Eye className="w-4 h-4" />
+                  View Full Report
+                </motion.button>
               </motion.div>
             )}
 
@@ -265,9 +346,9 @@ const QuickUpload = ({ onAnalyze, analyzing, progress, result }) => {
             className="flex items-center gap-2 p-3 bg-red-50 rounded-lg mt-3"
           >
             <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
-            <p className="text-sm text-red-600">{error}</p>
-            <button onClick={() => setError(null)} className="ml-auto">
-              <X className="w-3 h-3 text-red-400" />
+            <p className="text-sm text-red-600 flex-1">{error}</p>
+            <button onClick={() => setError(null)} className="flex-shrink-0">
+              <X className="w-3 h-3 text-red-400 hover:text-red-600" />
             </button>
           </motion.div>
         )}

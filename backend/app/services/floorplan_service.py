@@ -5,6 +5,7 @@ Main Pipeline Orchestrator v4
   - Pass zones to scale calculator
   - Validation logging at every stage
   - No scale_factor correction (geometry done on resized image)
+  - Returns project ID for frontend navigation
 """
 
 import time
@@ -12,6 +13,7 @@ import logging
 import cv2
 import warnings
 from pathlib import Path
+from sqlalchemy.orm import Session
 
 warnings.filterwarnings(
     "ignore", category=UserWarning, module="torch.utils.data.dataloader"
@@ -26,6 +28,7 @@ from .AiService.scale_calculator import calculate_scale
 from .AiService.geometry_engine import compute_geometry
 from .AiService.estimation_engine import estimate
 from .AiService.preview_generator import draw_preview, encode_image
+from .AiService.save_to_db import save_floorplan_to_db
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +36,26 @@ PREVIEW_DIR = Path(__file__).resolve().parents[2] / "previews"
 PREVIEW_DIR.mkdir(exist_ok=True)
 
 
-def analyze_floorplan(image_bytes: bytes, rates: dict = None) -> dict:
+def analyze_floorplan(
+    image_bytes: bytes, 
+    rates: dict = None,
+    db: Session = None,
+    user_id: int = None,
+    project_name: str = None
+) -> dict:
+    """
+    Complete floor plan analysis pipeline.
+    
+    Args:
+        image_bytes: Raw image data
+        rates: Optional custom pricing rates
+        db: Database session (required to save)
+        user_id: User ID (required to save)
+        project_name: Optional project name
+    
+    Returns:
+        dict with analysis results including 'id' field if saved to DB
+    """
     t0 = time.time()
     logger.info("=" * 60)
     logger.info("  FLOOR PLAN ANALYSIS PIPELINE START")
@@ -41,17 +63,25 @@ def analyze_floorplan(image_bytes: bytes, rates: dict = None) -> dict:
 
     timings = {}
 
-    # Stage 1
+    # ──────────────────────────────────────────────────────────
+    # Stage 1: Preprocessing
+    # ──────────────────────────────────────────────────────────
     t = time.time()
     pre = preprocess(image_bytes)
     timings["preprocessing"] = round(time.time() - t, 3)
+    logger.info(f"✅ Stage 1: Preprocessing ({timings['preprocessing']}s)")
 
-    # Stage 2
+    # ──────────────────────────────────────────────────────────
+    # Stage 2: YOLO Detection
+    # ──────────────────────────────────────────────────────────
     t = time.time()
     yolo = detect(pre["enhanced"])
     timings["yolo"] = round(time.time() - t, 3)
+    logger.info(f"✅ Stage 2: YOLO Detection ({timings['yolo']}s)")
 
-    # Stage 3
+    # ──────────────────────────────────────────────────────────
+    # Stage 3: SAM Segmentation
+    # ──────────────────────────────────────────────────────────
     t = time.time()
     sam = segment_walls(
         image=pre["enhanced"],
@@ -60,18 +90,27 @@ def analyze_floorplan(image_bytes: bytes, rates: dict = None) -> dict:
         doors=yolo["doors"],
     )
     timings["segmentation"] = round(time.time() - t, 3)
+    logger.info(f"✅ Stage 3: Segmentation ({timings['segmentation']}s)")
 
-    # Stage 4
+    # ──────────────────────────────────────────────────────────
+    # Stage 4: Skeleton Extraction
+    # ──────────────────────────────────────────────────────────
     t = time.time()
     skel = extract_centrelines(sam["wall_mask"])
     timings["skeleton"] = round(time.time() - t, 3)
+    logger.info(f"✅ Stage 4: Skeleton ({timings['skeleton']}s)")
 
-    # Stage 5
+    # ──────────────────────────────────────────────────────────
+    # Stage 5: OCR
+    # ──────────────────────────────────────────────────────────
     t = time.time()
     ocr = run_ocr(pre["enhanced"])
     timings["ocr"] = round(time.time() - t, 3)
+    logger.info(f"✅ Stage 5: OCR ({timings['ocr']}s)")
 
-    # Stage 6 - ✅ Pass zones AND scale_factor
+    # ──────────────────────────────────────────────────────────
+    # Stage 6: Scale Calculation
+    # ──────────────────────────────────────────────────────────
     t = time.time()
     scale = calculate_scale(
         dimensions=ocr["dimensions"],
@@ -81,8 +120,11 @@ def analyze_floorplan(image_bytes: bytes, rates: dict = None) -> dict:
         zones=yolo["zones"],
     )
     timings["scale"] = round(time.time() - t, 3)
+    logger.info(f"✅ Stage 6: Scale ({timings['scale']}s)")
 
-    # Stage 7
+    # ──────────────────────────────────────────────────────────
+    # Stage 7: Geometry Computation
+    # ──────────────────────────────────────────────────────────
     t = time.time()
     rooms = compute_geometry(
         room_masks=sam["room_masks"],
@@ -94,8 +136,11 @@ def analyze_floorplan(image_bytes: bytes, rates: dict = None) -> dict:
         image_shape=pre["enhanced"].shape,
     )
     timings["geometry"] = round(time.time() - t, 3)
+    logger.info(f"✅ Stage 7: Geometry ({timings['geometry']}s)")
 
-    # Stage 8
+    # ──────────────────────────────────────────────────────────
+    # Stage 8: Cost Estimation
+    # ──────────────────────────────────────────────────────────
     t = time.time()
     estimation = estimate(
         rooms=rooms,
@@ -104,8 +149,11 @@ def analyze_floorplan(image_bytes: bytes, rates: dict = None) -> dict:
         rates=rates,
     )
     timings["estimation"] = round(time.time() - t, 3)
+    logger.info(f"✅ Stage 8: Estimation ({timings['estimation']}s)")
 
-    # Stage 9
+    # ──────────────────────────────────────────────────────────
+    # Stage 9: Preview Generation
+    # ──────────────────────────────────────────────────────────
     t = time.time()
     preview_img = draw_preview(
         image=pre["enhanced"],
@@ -122,14 +170,11 @@ def analyze_floorplan(image_bytes: bytes, rates: dict = None) -> dict:
 
     preview_path = PREVIEW_DIR / "preview.jpg"
     cv2.imwrite(str(preview_path), preview_img)
-    logger.info(f"  Preview saved: {preview_path}")
+    logger.info(f"✅ Stage 9: Preview saved ({timings['preview']}s) → {preview_path}")
 
-    total_time = round(time.time() - t0, 3)
-    timings["total"] = total_time
-    logger.info(f"  PIPELINE COMPLETE ({total_time}s)")
-    logger.info("=" * 60)
-
-    # Build response
+    # ──────────────────────────────────────────────────────────
+    # Build Serializable Response
+    # ──────────────────────────────────────────────────────────
     serialisable_rooms = []
     for rm in rooms:
         serialisable_rooms.append({
@@ -150,7 +195,7 @@ def analyze_floorplan(image_bytes: bytes, rates: dict = None) -> dict:
                      int(rm["bbox"][2]), int(rm["bbox"][3])],
         })
 
-    return {
+    result = {
         "rooms": serialisable_rooms,
         "rooms_count": int(len(rooms)),
         "doors_count": int(len(yolo["doors"])),
@@ -172,3 +217,51 @@ def analyze_floorplan(image_bytes: bytes, rates: dict = None) -> dict:
         "preview_url": "/previews/preview.jpg",
         "timings": timings,
     }
+
+    # ──────────────────────────────────────────────────────────
+    # Stage 10: Save to Database (CRITICAL FOR FRONTEND)
+    # ──────────────────────────────────────────────────────────
+    if db is not None and user_id is not None:
+        t = time.time()
+        try:
+            name = project_name or "Untitled Project"
+
+            saved_project = save_floorplan_to_db(
+                db=db,
+                user_id=user_id,
+                result=result,
+                project_name=name,
+            )
+
+            # ✅ CRITICAL: Add project ID to response
+            result["id"] = saved_project.id  # <-- Frontend needs this!
+            result["project_id"] = saved_project.id  # Also include for clarity
+            result["saved"] = True
+            
+            logger.info(f"✅ Stage 10: Saved to DB (ID: {saved_project.id})")
+
+        except Exception as e:
+            logger.error(f"❌ Stage 10 failed: {e}", exc_info=True)
+            result["id"] = None
+            result["project_id"] = None
+            result["saved"] = False
+
+        timings["save_to_db"] = round(time.time() - t, 3)
+    else:
+        logger.warning("⚠️ Stage 10 skipped: no db session or user_id provided")
+        result["id"] = None
+        result["project_id"] = None
+        result["saved"] = False
+
+    # ──────────────────────────────────────────────────────────
+    # Final Timing
+    # ──────────────────────────────────────────────────────────
+    total_with_save = round(time.time() - t0, 3)
+    timings["total"] = total_with_save
+
+    logger.info("=" * 60)
+    logger.info(f"  PIPELINE COMPLETE ({total_with_save}s)")
+    logger.info(f"  Project ID: {result.get('id', 'NOT SAVED')}")
+    logger.info("=" * 60)
+
+    return result

@@ -153,6 +153,7 @@ const Dashboard = () => {
             projects={projects}
             loading={loading}
             onViewAll={() => navigate("/projects")}
+            onProjectsChange={fetchProjects}
           />
         </div>
         <div className="lg:col-span-2">
