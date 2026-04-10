@@ -10,6 +10,10 @@ from app.api.routes import auth, user as user_route
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 import logging
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # ── Configure logging for pipeline ──
 logging.basicConfig(

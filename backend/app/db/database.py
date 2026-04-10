@@ -1,17 +1,29 @@
+# app/db/database.py
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+import os
+from dotenv import load_dotenv
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./estimator.db"
+# Load environment variables
+load_dotenv()
 
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False}
-)
+# Get database URL from environment
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/estimator_db")
 
-SessionLocal = sessionmaker(
-    autocommit=False,
-    autoflush=False,
-    bind=engine
-)
+# Create engine
+engine = create_engine(DATABASE_URL)
 
+# Create session
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Create base class
 Base = declarative_base()
+
+# Dependency to get DB session
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

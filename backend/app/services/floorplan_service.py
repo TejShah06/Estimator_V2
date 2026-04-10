@@ -153,24 +153,24 @@ def analyze_floorplan(
 
     # ──────────────────────────────────────────────────────────
     # Stage 9: Preview Generation
-    # ──────────────────────────────────────────────────────────
-    t = time.time()
-    preview_img = draw_preview(
-        image=pre["enhanced"],
-        rooms=rooms,
-        doors=yolo["doors"],
-        windows=yolo["windows"],
-        skeleton=skel["skeleton"],
-        ocr_labels=ocr["labels"],
-        ocr_dimensions=ocr["dimensions"],
-        scale=scale,
-    )
-    preview_b64 = encode_image(preview_img)
-    timings["preview"] = round(time.time() - t, 3)
+    # # ──────────────────────────────────────────────────────────
+    # t = time.time()
+    # preview_img = draw_preview(
+    #     image=pre["enhanced"],
+    #     rooms=rooms,
+    #     doors=yolo["doors"],
+    #     windows=yolo["windows"],
+    #     skeleton=skel["skeleton"],
+    #     ocr_labels=ocr["labels"],
+    #     ocr_dimensions=ocr["dimensions"],
+    #     scale=scale,
+    # )
+    # preview_b64 = encode_image(preview_img)
+    # timings["preview"] = round(time.time() - t, 3)
 
-    preview_path = PREVIEW_DIR / "preview.jpg"
-    cv2.imwrite(str(preview_path), preview_img)
-    logger.info(f"✅ Stage 9: Preview saved ({timings['preview']}s) → {preview_path}")
+    # preview_path = PREVIEW_DIR / "preview.jpg"
+    # cv2.imwrite(str(preview_path), preview_img)
+    # logger.info(f"✅ Stage 9: Preview saved ({timings['preview']}s) → {preview_path}")
 
     # ──────────────────────────────────────────────────────────
     # Build Serializable Response
@@ -213,8 +213,8 @@ def analyze_floorplan(
         "wall_thickness_px": float(skel["wall_thickness_px"]),
         "ocr_labels_count": int(len(ocr["labels"])),
         "ocr_dimensions_count": int(len(ocr["dimensions"])),
-        "preview": preview_b64,
-        "preview_url": "/previews/preview.jpg",
+        #"preview": preview_b64,
+        #"preview_url": "/previews/preview.jpg",
         "timings": timings,
     }
 
@@ -248,7 +248,7 @@ def analyze_floorplan(
 
         timings["save_to_db"] = round(time.time() - t, 3)
     else:
-        logger.warning("⚠️ Stage 10 skipped: no db session or user_id provided")
+        logger.warning("⚠️ Stage 9 skipped: no db session or user_id provided")
         result["id"] = None
         result["project_id"] = None
         result["saved"] = False

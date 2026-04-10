@@ -1,8 +1,6 @@
-from sqlalchemy import Column, Integer, Float, ForeignKey, DateTime, String, Text
+from sqlalchemy import Column, Integer, Float, ForeignKey, DateTime, String, Text, func
 from sqlalchemy.orm import relationship
-from datetime import datetime
 from app.db.database import Base
-
 
 class FloorPlanProject(Base):
     __tablename__ = "floorplan_projects"
@@ -11,8 +9,8 @@ class FloorPlanProject(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     # Project info
-    project_name = Column(String, default="Untitled Project")
-    source_type = Column(String, default="ai")  # "ai" or "manual"
+    project_name = Column(String(100), default="Untitled Project")
+    source_type = Column(String(20), default="ai")  # "ai" or "manual"
 
     # Analysis results
     rooms_count = Column(Integer, default=0)
@@ -22,7 +20,7 @@ class FloorPlanProject(Base):
     total_area_m2 = Column(Float, default=0.0)
 
     # Scale info
-    scale_method = Column(String, default="unknown")
+    scale_method = Column(String(50), default="unknown")
     scale_px_per_foot = Column(Float, default=0.0)
 
     # Room details as JSON string
@@ -39,17 +37,17 @@ class FloorPlanProject(Base):
     windows_cost = Column(Float, default=0.0)
 
     # Preview image path
-    preview_path = Column(String, nullable=True)
+    preview_path = Column(String(255), nullable=True ,default=None)
 
     # Analysis time
     analysis_time_seconds = Column(Float, default=0.0)
 
     # Status: completed, processing, failed
-    status = Column(String, default="completed")
+    status = Column(String(20), default="completed")
 
     # Timestamps
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     # Relationship
-    user = relationship("User")
+    user = relationship("User", back_populates="floorplan_projects")

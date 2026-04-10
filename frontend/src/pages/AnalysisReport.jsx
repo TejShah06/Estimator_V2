@@ -266,52 +266,235 @@ const RoomDetailsTable = ({ rooms }) => {
       </div>
     </motion.div>
   )
-} 
+}
 
-// ✅ Annotated Floor Plan Preview
-const AnnotatedFloorPlan = ({ previewPath, projectName, projectId }) => {
-  const [imageLoaded, setImageLoaded] = useState(false)
-  const [imageError, setImageError] = useState(false)
-
-  const getImageUrl = () => {
-    if (!previewPath) return null
-    
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:8000"
-    
-    if (previewPath.startsWith("http")) {
-      return previewPath
-    }
-    
-    if (previewPath.startsWith("/")) {
-      return `${baseUrl}${previewPath}`
-    }
-    
-    return `${baseUrl}/${previewPath}`
-  }
-
-  const imageUrl = getImageUrl()
-
-  if (!imageUrl) {
+// ✅ NEW: SVG Floor Plan Generator Component
+const SVGFloorPlanGenerator = ({ rooms, projectName }) => {
+  if (!rooms || rooms.length === 0) {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border border-white/10 rounded-xl sm:rounded-2xl p-5 sm:p-6 lg:p-8"
-      >
-        <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
-          <Maximize2 className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400" />
-          Floor Plan Analysis
-        </h3>
-        <div className="aspect-video bg-slate-800/50 rounded-lg sm:rounded-xl flex items-center justify-center">
-          <div className="text-center">
-            <FrameIcon className="w-12 h-12 sm:w-16 sm:h-16 text-gray-600 mx-auto mb-3 sm:mb-4" />
-            <p className="text-sm sm:text-base text-gray-400">No preview available</p>
-          </div>
+      <div className="aspect-video bg-slate-800/50 rounded-lg sm:rounded-xl flex items-center justify-center">
+        <div className="text-center">
+          <FrameIcon className="w-12 h-12 sm:w-16 sm:h-16 text-gray-600 mx-auto mb-3 sm:mb-4" />
+          <p className="text-sm sm:text-base text-gray-400">No room data available</p>
         </div>
-      </motion.div>
+      </div>
     )
   }
 
+  // Calculate SVG dimensions based on total area
+  const PADDING = 40
+  const ROOM_SPACING = 10
+  
+  // Calculate grid layout
+  const cols = Math.ceil(Math.sqrt(rooms.length))
+  const rows = Math.ceil(rooms.length / cols)
+  
+  // Find max area for scaling
+  const maxArea = Math.max(...rooms.map(r => r.area_sqft || 0))
+  const baseRoomSize = 120 // Base size in pixels
+  
+  // Generate room positions and dimensions
+  const roomElements = rooms.map((room, index) => {
+    const col = index % cols
+    const row = Math.floor(index / cols)
+    
+    // Calculate room dimensions proportional to area
+    const areaRatio = Math.sqrt((room.area_sqft || 0) / maxArea)
+    const roomWidth = baseRoomSize * Math.max(areaRatio, 0.5)
+    const roomHeight = baseRoomSize * Math.max(areaRatio, 0.5)
+    
+    const x = PADDING + col * (baseRoomSize + ROOM_SPACING)
+    const y = PADDING + row * (baseRoomSize + ROOM_SPACING)
+    
+    return {
+      ...room,
+      x,
+      y,
+      width: roomWidth,
+      height: roomHeight,
+      index: index + 1
+    }
+  })
+
+  const svgWidth = cols * (baseRoomSize + ROOM_SPACING) + PADDING * 2
+  const svgHeight = rows * (baseRoomSize + ROOM_SPACING) + PADDING * 2
+
+  // Color configurations for different room types
+  const getGradientColors = (index) => {
+    const gradients = [
+      { start: '#3b82f6', end: '#06b6d4' }, // blue-cyan
+      { start: '#10b981', end: '#059669' }, // green-emerald
+      { start: '#a855f7', end: '#ec4899' }, // purple-pink
+      { start: '#f59e0b', end: '#f97316' }, // amber-orange
+      { start: '#06b6d4', end: '#3b82f6' }, // cyan-blue
+      { start: '#ec4899', end: '#f43f5e' }, // pink-rose
+    ]
+    return gradients[index % gradients.length]
+  }
+
+  return (
+    <div className="w-full bg-slate-900/50 rounded-lg sm:rounded-xl overflow-hidden border border-white/10">
+      <svg
+        viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+        className="w-full h-auto"
+        style={{ minHeight: '400px' }}
+      >
+        {/* Grid background */}
+        <defs>
+          <pattern
+            id="grid"
+            width="20"
+            height="20"
+            patternUnits="userSpaceOnUse"
+          >
+            <path
+              d="M 20 0 L 0 0 0 20"
+              fill="none"
+              stroke="rgba(148, 163, 184, 0.1)"
+              strokeWidth="0.5"
+            />
+          </pattern>
+
+          {/* Gradients for each room */}
+          {roomElements.map((room, idx) => {
+            const colors = getGradientColors(idx)
+            return (
+              <linearGradient key={`gradient-${idx}`} id={`gradient-${idx}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor={colors.start} stopOpacity="0.3" />
+                <stop offset="100%" stopColor={colors.end} stopOpacity="0.3" />
+              </linearGradient>
+            )
+          })}
+        </defs>
+
+        {/* Grid background rectangle */}
+        <rect width={svgWidth} height={svgHeight} fill="url(#grid)" />
+
+        {/* Room rectangles */}
+        {roomElements.map((room, idx) => {
+          return (
+            <g key={idx} className="group cursor-pointer">
+              {/* Room rectangle */}
+              <rect
+                x={room.x}
+                y={room.y}
+                width={room.width}
+                height={room.height}
+                fill={`url(#gradient-${idx})`}
+                stroke="#06b6d4"
+                strokeWidth="2"
+                strokeDasharray="4,4"
+                rx="4"
+                className="transition-all duration-300 group-hover:stroke-cyan-400 group-hover:stroke-[3]"
+              />
+
+              {/* Room label background */}
+              <rect
+                x={room.x + 5}
+                y={room.y + 5}
+                width={room.width - 10}
+                height="24"
+                fill="rgba(15, 23, 42, 0.8)"
+                rx="4"
+              />
+
+              {/* Room number and type */}
+              <text
+                x={room.x + room.width / 2}
+                y={room.y + 21}
+                textAnchor="middle"
+                className="fill-white text-xs font-bold"
+                style={{ fontSize: '12px' }}
+              >
+                #{room.index} {room.type || room.label || 'Room'}
+              </text>
+
+              {/* Area */}
+              <text
+                x={room.x + room.width / 2}
+                y={room.y + room.height / 2 + 5}
+                textAnchor="middle"
+                className="fill-cyan-300 text-sm font-semibold"
+                style={{ fontSize: '14px' }}
+              >
+                {formatArea(room.area_sqft)} sqft
+              </text>
+
+              {/* Dimensions */}
+              {(room.width_ft && room.length_ft) && (
+                <text
+                  x={room.x + room.width / 2}
+                  y={room.y + room.height / 2 + 22}
+                  textAnchor="middle"
+                  className="fill-gray-400"
+                  style={{ fontSize: '10px' }}
+                >
+                  {room.width_ft.toFixed(1)}' × {room.length_ft.toFixed(1)}'
+                </text>
+              )}
+
+              {/* Door indicator */}
+              {room.doors > 0 && (
+                <g transform={`translate(${room.x + 5}, ${room.y + room.height - 25})`}>
+                  <rect width="18" height="18" fill="rgba(59, 130, 246, 0.2)" rx="3" stroke="#3b82f6" strokeWidth="1" />
+                  <text x="9" y="13" textAnchor="middle" className="fill-blue-300 font-bold" style={{ fontSize: '10px' }}>
+                    D{room.doors}
+                  </text>
+                </g>
+              )}
+
+              {/* Window indicator */}
+              {room.windows > 0 && (
+                <g transform={`translate(${room.x + room.width - 23}, ${room.y + room.height - 25})`}>
+                  <rect width="18" height="18" fill="rgba(251, 191, 36, 0.2)" rx="3" stroke="#fbbf24" strokeWidth="1" />
+                  <text x="9" y="13" textAnchor="middle" className="fill-amber-300 font-bold" style={{ fontSize: '10px' }}>
+                    W{room.windows}
+                  </text>
+                </g>
+              )}
+
+              {/* Hover effect overlay */}
+              <rect
+                x={room.x}
+                y={room.y}
+                width={room.width}
+                height={room.height}
+                fill="rgba(6, 182, 212, 0)"
+                className="transition-all duration-300 group-hover:fill-[rgba(6,182,212,0.1)]"
+                rx="4"
+                pointerEvents="all"
+              />
+            </g>
+          )
+        })}
+
+        {/* Title */}
+        <text
+          x={svgWidth / 2}
+          y={25}
+          textAnchor="middle"
+          className="fill-white text-base font-bold"
+          style={{ fontSize: '16px' }}
+        >
+          {projectName}
+        </text>
+
+        {/* Scale indicator */}
+        <g transform={`translate(${PADDING}, ${svgHeight - 25})`}>
+          <line x1="0" y1="10" x2="50" y2="10" stroke="#06b6d4" strokeWidth="2" />
+          <line x1="0" y1="7" x2="0" y2="13" stroke="#06b6d4" strokeWidth="2" />
+          <line x1="50" y1="7" x2="50" y2="13" stroke="#06b6d4" strokeWidth="2" />
+          <text x="25" y="25" textAnchor="middle" className="fill-gray-400" style={{ fontSize: '10px' }}>
+            Scale: Proportional to Area
+          </text>
+        </g>
+      </svg>
+    </div>
+  )
+}
+
+// ✅ UPDATED: Annotated Floor Plan Component
+const AnnotatedFloorPlan = ({ previewPath, projectName, projectId, rooms }) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -323,53 +506,22 @@ const AnnotatedFloorPlan = ({ previewPath, projectName, projectId }) => {
         Floor Plan Analysis
       </h3>
 
-      <div className="relative rounded-lg sm:rounded-xl overflow-hidden border border-white/10 bg-slate-900/50">
-        {!imageLoaded && !imageError && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Loader2 className="w-8 h-8 sm:w-12 sm:h-12 text-cyan-400 animate-spin" />
-          </div>
-        )}
-        
-        {imageError ? (
-          <div className="aspect-video flex items-center justify-center">
-            <div className="text-center p-4">
-              <AlertCircle className="w-12 h-12 sm:w-16 sm:h-16 text-red-400 mx-auto mb-3 sm:mb-4" />
-              <p className="text-sm sm:text-base text-gray-400">Failed to load image</p>
-              <p className="text-xs text-gray-600 mt-2 break-all">{imageUrl}</p>
-            </div>
-          </div>
-        ) : (
-          <img
-            src={imageUrl}
-            alt={projectName}
-            onLoad={() => {
-              console.log("✅ Image loaded successfully:", imageUrl)
-              setImageLoaded(true)
-            }}
-            onError={(e) => {
-              console.error("❌ Image failed to load:", imageUrl)
-              setImageError(true)
-            }}
-            className={`w-full h-auto transition-opacity duration-500 ${
-              imageLoaded ? "opacity-100" : "opacity-0"
-            }`}
-          />
-        )}
-      </div>
+      {/* SVG Floor Plan Generator */}
+      <SVGFloorPlanGenerator rooms={rooms} projectName={projectName} />
 
       {/* Legend */}
       <div className="mt-4 sm:mt-6 flex items-center justify-center gap-4 sm:gap-6 text-xs sm:text-sm flex-wrap">
         <div className="flex items-center gap-1.5 sm:gap-2">
-          <div className="w-3 h-3 sm:w-4 sm:h-4 rounded bg-green-500/30 border-2 border-green-500" />
-          <span className="text-gray-300">Rooms</span>
+          <div className="w-3 h-3 sm:w-4 sm:h-4 rounded bg-cyan-500/30 border-2 border-cyan-500" />
+          <span className="text-gray-300">Room Area</span>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2">
           <div className="w-3 h-3 sm:w-4 sm:h-4 rounded bg-blue-500/30 border-2 border-blue-500" />
-          <span className="text-gray-300">Doors</span>
+          <span className="text-gray-300">Doors (D)</span>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2">
-          <div className="w-3 h-3 sm:w-4 sm:h-4 rounded bg-yellow-500/30 border-2 border-yellow-500" />
-          <span className="text-gray-300">Windows</span>
+          <div className="w-3 h-3 sm:w-4 sm:h-4 rounded bg-amber-500/30 border-2 border-amber-500" />
+          <span className="text-gray-300">Windows (W)</span>
         </div>
       </div>
     </motion.div>
@@ -503,7 +655,7 @@ const AnalysisReport = () => {
         <div className="fixed top-0 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl" />
         <div className="fixed bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
 
-        {/* ✅ FIXED HEADER - No hover animations on buttons */}
+        {/* Header */}
         <div className="sticky top-0 sm:top-16 z-40 bg-slate-950/80 backdrop-blur-xl border-b border-white/10 print:hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
@@ -535,7 +687,7 @@ const AnalysisReport = () => {
                 </div>
               </div>
 
-              {/* ✅ Right: Action Buttons - Removed whileHover and whileTap */}
+              {/* Right: Action Buttons */}
               <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0 scrollbar-hide">
                 <button
                   onClick={handlePrint}
@@ -615,6 +767,7 @@ const AnalysisReport = () => {
                 previewPath={report.preview_path}
                 projectName={report.project_name}
                 projectId={projectId}
+                rooms={report.rooms}
               />
               <RoomDetailsTable rooms={report.rooms} />
             </div>
