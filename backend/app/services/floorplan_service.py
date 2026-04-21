@@ -1,7 +1,6 @@
 """
 Main Pipeline Orchestrator v4
 
-✅ Fixes:
   - Pass zones to scale calculator
   - Validation logging at every stage
   - No scale_factor correction (geometry done on resized image)
@@ -69,7 +68,7 @@ def analyze_floorplan(
     t = time.time()
     pre = preprocess(image_bytes)
     timings["preprocessing"] = round(time.time() - t, 3)
-    logger.info(f"✅ Stage 1: Preprocessing ({timings['preprocessing']}s)")
+    logger.info(f"Stage 1: Preprocessing ({timings['preprocessing']}s)")
 
     # ──────────────────────────────────────────────────────────
     # Stage 2: YOLO Detection
@@ -77,7 +76,7 @@ def analyze_floorplan(
     t = time.time()
     yolo = detect(pre["enhanced"])
     timings["yolo"] = round(time.time() - t, 3)
-    logger.info(f"✅ Stage 2: YOLO Detection ({timings['yolo']}s)")
+    logger.info(f"Stage 2: YOLO Detection ({timings['yolo']}s)")
 
     # ──────────────────────────────────────────────────────────
     # Stage 3: SAM Segmentation
@@ -90,7 +89,7 @@ def analyze_floorplan(
         doors=yolo["doors"],
     )
     timings["segmentation"] = round(time.time() - t, 3)
-    logger.info(f"✅ Stage 3: Segmentation ({timings['segmentation']}s)")
+    logger.info(f" Stage 3: Segmentation ({timings['segmentation']}s)")
 
     # ──────────────────────────────────────────────────────────
     # Stage 4: Skeleton Extraction
@@ -98,7 +97,7 @@ def analyze_floorplan(
     t = time.time()
     skel = extract_centrelines(sam["wall_mask"])
     timings["skeleton"] = round(time.time() - t, 3)
-    logger.info(f"✅ Stage 4: Skeleton ({timings['skeleton']}s)")
+    logger.info(f"Stage 4: Skeleton ({timings['skeleton']}s)")
 
     # ──────────────────────────────────────────────────────────
     # Stage 5: OCR
@@ -106,7 +105,7 @@ def analyze_floorplan(
     t = time.time()
     ocr = run_ocr(pre["enhanced"])
     timings["ocr"] = round(time.time() - t, 3)
-    logger.info(f"✅ Stage 5: OCR ({timings['ocr']}s)")
+    logger.info(f"Stage 5: OCR ({timings['ocr']}s)")
 
     # ──────────────────────────────────────────────────────────
     # Stage 6: Scale Calculation
@@ -120,7 +119,7 @@ def analyze_floorplan(
         zones=yolo["zones"],
     )
     timings["scale"] = round(time.time() - t, 3)
-    logger.info(f"✅ Stage 6: Scale ({timings['scale']}s)")
+    logger.info(f"Stage 6: Scale ({timings['scale']}s)")
 
     # ──────────────────────────────────────────────────────────
     # Stage 7: Geometry Computation
@@ -136,7 +135,7 @@ def analyze_floorplan(
         image_shape=pre["enhanced"].shape,
     )
     timings["geometry"] = round(time.time() - t, 3)
-    logger.info(f"✅ Stage 7: Geometry ({timings['geometry']}s)")
+    logger.info(f" Stage 7: Geometry ({timings['geometry']}s)")
 
     # ──────────────────────────────────────────────────────────
     # Stage 8: Cost Estimation
@@ -149,10 +148,10 @@ def analyze_floorplan(
         rates=rates,
     )
     timings["estimation"] = round(time.time() - t, 3)
-    logger.info(f"✅ Stage 8: Estimation ({timings['estimation']}s)")
+    logger.info(f"Stage 8: Estimation ({timings['estimation']}s)")
 
     # ──────────────────────────────────────────────────────────
-    # Stage 9: Preview Generation
+    # Stage 9: Preview Generation optional
     # # ──────────────────────────────────────────────────────────
     # t = time.time()
     # preview_img = draw_preview(
@@ -170,7 +169,7 @@ def analyze_floorplan(
 
     # preview_path = PREVIEW_DIR / "preview.jpg"
     # cv2.imwrite(str(preview_path), preview_img)
-    # logger.info(f"✅ Stage 9: Preview saved ({timings['preview']}s) → {preview_path}")
+    # logger.info(f" Stage 9: Preview saved ({timings['preview']}s) → {preview_path}")
 
     # ──────────────────────────────────────────────────────────
     # Build Serializable Response
@@ -233,22 +232,22 @@ def analyze_floorplan(
                 project_name=name,
             )
 
-            # ✅ CRITICAL: Add project ID to response
+            #  CRITICAL: Add project ID to response
             result["id"] = saved_project.id  # <-- Frontend needs this!
             result["project_id"] = saved_project.id  # Also include for clarity
             result["saved"] = True
             
-            logger.info(f"✅ Stage 10: Saved to DB (ID: {saved_project.id})")
+            logger.info(f" Stage 10: Saved to DB (ID: {saved_project.id})")
 
         except Exception as e:
-            logger.error(f"❌ Stage 10 failed: {e}", exc_info=True)
+            logger.error(f"Stage 10 failed: {e}", exc_info=True)
             result["id"] = None
             result["project_id"] = None
             result["saved"] = False
 
         timings["save_to_db"] = round(time.time() - t, 3)
     else:
-        logger.warning("⚠️ Stage 9 skipped: no db session or user_id provided")
+        logger.warning(" Stage 9 skipped: no db session or user_id provided")
         result["id"] = None
         result["project_id"] = None
         result["saved"] = False

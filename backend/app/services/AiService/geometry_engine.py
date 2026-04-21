@@ -87,7 +87,7 @@ def compute_geometry(
         if area_px == 0:
             continue
 
-        # ✅ Convert pixel measurements to real-world units
+        # Convert pixel measurements to real-world units
         # area_sqft = area_px * (ft_per_px)^2
         # This means: each pixel is ft_per_px feet wide and tall
         # So each pixel covers ft_per_px^2 square feet
@@ -189,7 +189,7 @@ def compute_geometry(
             "window_details": room_windows,
         })
 
-        # ✅ Validation logging
+        # Validation logging
         logger.info(
             f"  Room {idx}: '{room_name}' | "
             f"bbox={w}x{h}px | "

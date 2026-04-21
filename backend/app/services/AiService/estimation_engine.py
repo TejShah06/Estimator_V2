@@ -1,7 +1,6 @@
 """
 Stage 8: Estimation Engine
-
-✅ 2025 Indian Residential Rates (INR)
+Indian Residential Rates (INR)
 """
 
 import logging
