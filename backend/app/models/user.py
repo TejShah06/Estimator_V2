@@ -19,7 +19,7 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     last_login = Column(DateTime(timezone=True), nullable=True)
 
-    # ✅ RELATIONSHIPS (IMPORTANT!)
+    #  RELATIONSHIPS (IMPORTANT!)
     manual_estimations = relationship(
         "ManualEstimation",
         back_populates="user",
