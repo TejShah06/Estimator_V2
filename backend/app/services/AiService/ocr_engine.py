@@ -1,7 +1,5 @@
 """
 Stage 5: OCR - text labels AND dimension strings
-
-✅ FIXES v4:
   - Added bare "NUMBERxNUMBER" format (11X12, 12x13)
   - This is the most common format in simple floor plans
   - Better separation of dimension text vs room labels
