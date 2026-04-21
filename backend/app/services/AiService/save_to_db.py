@@ -59,7 +59,7 @@ def save_floorplan_to_db(db, user_id, result, project_name="Untitled"):
     db.commit()
     db.refresh(project)
 
-    logger.info(f"✅ Saved FloorPlanProject #{project.id}: "
+    logger.info(f"Saved FloorPlanProject #{project.id}: "
                 f"'{project.project_name}' "
                 f"cost=₹{project.estimated_cost:,.2f}, "
                 f"area={project.total_area_sqft:.0f}sqft, "
