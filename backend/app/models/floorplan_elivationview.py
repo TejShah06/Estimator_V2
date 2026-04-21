@@ -66,7 +66,7 @@ class FloorPlanElevationView(Base):
     uploaded_at = Column(DateTime(timezone=True), server_default=func.now())
     processed_at = Column(DateTime(timezone=True), nullable=True)
 
-    # ✅ FIXED RELATIONSHIPS
+    # FIXED RELATIONSHIPS
     project = relationship("FloorPlanProject", back_populates="elevation_views")
     uploaded_by = relationship(
         "User",
