@@ -2,10 +2,9 @@ from passlib.context import CryptContext
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 
-SECRET_KEY = "supersecretkey"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
-
+SECRET_KEY = "YOUR SECRET KEY"
+ALGORITHM = "YOUR ALGORITHAM"
+ACCESS_TOKEN_EXPIRE_MINUTES = YOUR TIME IN INTEGER
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def hash_password(password: str):
