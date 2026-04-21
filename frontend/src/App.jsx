@@ -9,7 +9,7 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 import AIEstimation from "./pages/AIEstimation";
-
+import EstimationReport from "./pages/EstimationReport"
 import AnalysisReport from "./pages/AnalysisReport"
 
 import About from "./pages/company/About";
@@ -24,14 +24,11 @@ return(
 <BrowserRouter>
 
 <Routes>
-
 <Route path="/" element={<Home/>}/>
 <Route path="/login" element={<Login/>}/>
 <Route path="/register" element={<Register/>}/>
 <Route path="/forgot-password" element={<ForgotPassword/>}/>
 <Route path="/reset-password/:token" element={<ResetPassword/>}/>
-
-
 <Route
 path="/calculator"
 element={
@@ -48,15 +45,12 @@ element={
 </ProtectedRoute>
 }
 />
-
 <Route path="/report/:projectId" element={<AnalysisReport />} />
-
 <Route path="/about" element={<About />} />
 <Route path="/blog" element={<Blog />} />
-
 <Route path="/contact" element={<Contact />} />
 <Route path="/ai-estimation" element={<AIEstimation />} />
-
+<Route path="/estimation-report/:id" element={<EstimationReport />} />
 </Routes>
 
 

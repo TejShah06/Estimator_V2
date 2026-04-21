@@ -38,7 +38,7 @@ const formatCost = (cost) => {
   return `₹${num.toLocaleString("en-IN")}`
 }
 
-// ✅ Filter Dropdown Component
+// Filter Dropdown Component
 const FilterDropdown = ({ filter, setFilter }) => {
   const [open, setOpen] = useState(false)
 
@@ -106,7 +106,7 @@ const FilterDropdown = ({ filter, setFilter }) => {
   )
 }
 
-// ✅ Delete Confirmation Modal
+//  Delete Confirmation Modal
 const DeleteConfirmModal = ({ isOpen, onClose, onConfirm, projectName, isDeleting }) => {
   if (!isOpen) return null
 
@@ -178,7 +178,7 @@ const DeleteConfirmModal = ({ isOpen, onClose, onConfirm, projectName, isDeletin
   )
 }
 
-// ✅ Project Row Component
+// Project Row Component
 const ProjectRow = ({ project, index, onDelete, onView }) => {
   const [showMenu, setShowMenu] = useState(false)
   const isAI = project.source_type === "ai"
@@ -345,24 +345,24 @@ const ProjectRow = ({ project, index, onDelete, onView }) => {
   )
 }
 
-// ✅ Main Component
+//  Main Component
 const RecentProjects = ({ projects, loading, onViewAll, onProjectsChange }) => {
   const navigate = useNavigate() // ✅ Add navigate hook
   const [filter, setFilter] = useState("all")
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, project: null })
   const [isDeleting, setIsDeleting] = useState(false)
 
-  // ✅ Filter projects based on selection
+  //  Filter projects based on selection
   const filteredProjects = useMemo(() => {
     if (filter === "all") return projects
     return projects.filter(p => p.source_type === filter)
   }, [projects, filter])
 
-  // ✅ Count by type
+  //  Count by type
   const aiCount = projects.filter(p => p.source_type === "ai").length
   const manualCount = projects.filter(p => p.source_type === "manual").length
 
-  // ✅ Handle View Project
+  //  Handle View Project
   const handleView = (project) => {
     if (project.source_type === "ai") {
       // Extract the real ID from "ai-123" format
@@ -370,12 +370,12 @@ const RecentProjects = ({ projects, loading, onViewAll, onProjectsChange }) => {
       navigate(`/report/${realId}`)
     } else {
       // For manual projects, navigate to calculator or a manual estimate view
-      const realId = project.id.split("-")[1]
-      navigate(`/estimate/${realId}`) // You can create this route or redirect as needed
+      const Id = project.id.split("-")[1]
+      navigate(`/estimation-report/${Id}`) // You can create this route or redirect as needed
     }
   }
 
-  // ✅ Handle Delete Project
+  // Handle Delete Project
   const handleDeleteClick = (project) => {
     setDeleteModal({ isOpen: true, project })
   }
@@ -405,10 +405,10 @@ const RecentProjects = ({ projects, loading, onViewAll, onProjectsChange }) => {
       }
 
       // Show success message (optional - you can use a toast library)
-      console.log("✅ Project deleted successfully")
+      console.log("Project deleted successfully")
 
     } catch (error) {
-      console.error("❌ Error deleting project:", error)
+      console.error(" Error deleting project:", error)
       alert(error.response?.data?.detail || "Failed to delete project")
     } finally {
       setIsDeleting(false)

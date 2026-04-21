@@ -1,11 +1,12 @@
+
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 from fastapi.security import HTTPBearer
-from app.api.routes import calculator
+
 from app.db.database import engine, Base
 from fastapi.middleware.cors import CORSMiddleware
 import app.db.base  # important: registers all models
-from app.api.routes import floorplan, dashboard, project
+from app.api.routes import floorplan, dashboard, project, manual
 from app.api.routes import auth, user as user_route
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
@@ -35,7 +36,7 @@ app.add_middleware(
 
 app.include_router(auth.router)
 #app.include_router(user_route.router)
-app.include_router(calculator.router)
+app.include_router(manual.router)
 app.include_router(floorplan.router)
 app.include_router(dashboard.router)
 app.include_router(project.router)
