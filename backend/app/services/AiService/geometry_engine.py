@@ -1,10 +1,5 @@
 """
 Stage 7: Geometry Engine
-
-✅ FIXES v4:
-  - Use contour area for room area (not bbox area)
-  - Proper scale application
-  - Validation logging to catch errors
 """
 
 import cv2
