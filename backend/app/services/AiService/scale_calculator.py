@@ -1,7 +1,5 @@
 """
 Stage 6: Scale Calculation
-
-✅ FIXES v4:
   - Use YOLO zone bounding boxes matched to OCR dimensions
   - Both width AND height matched independently for accuracy
   - Multiple samples -> median for robustness
@@ -115,13 +113,13 @@ def _estimate_from_zones(zones, dimensions, image_shape):
             if consistency < 0.30:
                 ratios.append(avg_ratio)
                 logger.info(
-                    f"    ✅ Zone match: '{dim['original_text']}' "
+                    f"    Zone match: '{dim['original_text']}' "
                     f"({real_ft1}x{real_ft2}ft) -> zone {zone_w:.0f}x{zone_h:.0f}px "
                     f"= {avg_ratio:.2f} px/ft (orient={orientation}, consistency={consistency:.2f})"
                 )
             else:
                 logger.info(
-                    f"    ⚠️ Inconsistent: '{dim['original_text']}' "
+                    f"    Inconsistent: '{dim['original_text']}' "
                     f"consistency={consistency:.2f} > 0.30, skipping"
                 )
         else:
@@ -141,7 +139,7 @@ def _estimate_from_zones(zones, dimensions, image_shape):
 
             ratios.append(avg_ratio)
             logger.info(
-                f"    ✅ Zone match (single): '{dim['original_text']}' "
+                f"    Zone match (single): '{dim['original_text']}' "
                 f"({real_ft1}ft) -> {avg_ratio:.2f} px/ft"
             )
 
@@ -189,7 +187,7 @@ def calculate_scale(dimensions, segments, image_shape, scale_factor=1.0, zones=N
 
         logger.info(f"  Median ratio (resized): {px_per_ft_resized:.4f} px/ft")
 
-        # ✅ IMPORTANT: These ratios were computed on the RESIZED image.
+        # IMPORTANT: These ratios were computed on the RESIZED image.
         # The resized image was scale_factor times larger than original.
         # But since we are doing ALL our geometry on the resized image,
         # we should NOT divide by scale_factor here.
@@ -215,9 +213,9 @@ def calculate_scale(dimensions, segments, image_shape, scale_factor=1.0, zones=N
         "samples": len(ratios),
     }
 
-    logger.info(f"  ✅ Final Scale: {result}")
+    logger.info(f"  Final Scale: {result}")
 
-    # ✅ Validation: log expected vs actual for each dimension
+    #  Validation: log expected vs actual for each dimension
     if zones and dimensions:
         for dim in dimensions:
             parsed = dim.get("parsed")
