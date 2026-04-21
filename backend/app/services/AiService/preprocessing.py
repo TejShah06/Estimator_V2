@@ -12,7 +12,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-MAX_DIM = 1200  # ✅ Lowered from 1600 for better accuracy + speed
+MAX_DIM = 1200  #  Lowered from 1600 for better accuracy + speed
 MIN_DIM = 600
 
 
