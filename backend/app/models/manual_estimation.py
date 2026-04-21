@@ -13,24 +13,24 @@ class ManualEstimation(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
-    # ✅ PROJECT IDENTIFICATION
+    # PROJECT IDENTIFICATION
     estimation_code = Column(String(50), unique=True, nullable=True)
     estimation_name = Column(String(100), nullable=False)
     description = Column(Text, nullable=True)
 
-    # ✅ INPUT DATA
+    #  INPUT DATA
     area_sqft = Column(Float, nullable=False)
     area_m2 = Column(Float, nullable=True)
     floors = Column(Integer, nullable=False, default=1)
     wastage_percent = Column(Float, nullable=False, default=5.0)
 
-    # ✅ MIX CONFIGURATION
+    #  MIX CONFIGURATION
     mix_type = Column(String(20), nullable=False)
     cement_part = Column(Float, nullable=False)
     sand_part = Column(Float, nullable=False)
     aggregate_part = Column(Float, nullable=False)
 
-    # ✅ RATE CONFIGURATION
+    #  RATE CONFIGURATION
     steel_rate_per_kg = Column(Float, nullable=False)
     cement_rate_per_bag = Column(Float, nullable=False)
     sand_rate_per_ton = Column(Float, nullable=False)
@@ -38,7 +38,7 @@ class ManualEstimation(Base):
     brick_rate_per_unit = Column(Float, nullable=False)
     paint_rate_per_liter = Column(Float, nullable=False)
 
-    # ✅ CALCULATED MATERIALS
+    #  CALCULATED MATERIALS
     concrete_volume_m3 = Column(Float, nullable=True)
     dry_volume_m3 = Column(Float, nullable=True)
     steel_kg = Column(Float, nullable=True)
@@ -48,17 +48,17 @@ class ManualEstimation(Base):
     bricks = Column(Float, nullable=True)
     paint_liters = Column(Float, nullable=True)
 
-    # ✅ STATUS & METADATA
+    #  STATUS & METADATA
     status = Column(String(20), default='completed')
     notes = Column(Text, nullable=True)
 
-    # ✅ TIMESTAMPS
+    #  TIMESTAMPS
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     deleted_at = Column(DateTime(timezone=True), nullable=True)
     is_deleted = Column(Boolean, default=False)
 
-    # ✅ RELATIONSHIPS
+    #  RELATIONSHIPS
     user = relationship("User", back_populates="manual_estimations")
     costs = relationship(
         "ManualEstimationCost",
@@ -89,27 +89,27 @@ class ManualEstimationCost(Base):
     id = Column(Integer, primary_key=True, index=True)
     estimation_id = Column(Integer, ForeignKey("manual_estimations.id", ondelete="CASCADE"), nullable=False)
 
-    # ✅ MATERIAL IDENTIFICATION
+    #  MATERIAL IDENTIFICATION
     material_type = Column(String(50), nullable=False)
     cost_category = Column(String(50), nullable=True)
 
-    # ✅ QUANTITY & UNIT
+    #  QUANTITY & UNIT
     quantity = Column(Float, nullable=False)
     unit = Column(String(20), nullable=False)
     rate_per_unit = Column(Float, nullable=False)
 
-    # ✅ CALCULATED COSTS
+    #  CALCULATED COSTS
     material_cost = Column(Float, nullable=False)
     wastage_cost = Column(Float, nullable=False)
     total_cost = Column(Float, nullable=False)
 
-    # ✅ METADATA
+    #  METADATA
     notes = Column(Text, nullable=True)
 
-    # ✅ TIMESTAMPS
+    #  TIMESTAMPS
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    # ✅ RELATIONSHIPS
+    #  RELATIONSHIPS
     estimation = relationship("ManualEstimation", back_populates="costs")
 
     def to_dict(self):

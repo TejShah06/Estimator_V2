@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Get database URL from environment
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/estimator_db")
+DATABASE_URL = os.getenv("DATABASE_URL", "YOUR DB URL")
 
 # Create engine
 engine = create_engine(DATABASE_URL)

@@ -1,7 +1,5 @@
 """
 Stage 5: OCR - text labels AND dimension strings
-
-✅ FIXES v4:
   - Added bare "NUMBERxNUMBER" format (11X12, 12x13)
   - This is the most common format in simple floor plans
   - Better separation of dimension text vs room labels
@@ -26,7 +24,7 @@ _DIM_PATTERNS = [
     (r"(\d+)['\u2019]\s*[xX×]\s*(\d+)['\u2019]",
      "imperial_area_no_inches"),
 
-    # ✅ NEW: Bare NUMBERxNUMBER (11X12, 12x13) - most common simple format
+    # NEW: Bare NUMBERxNUMBER (11X12, 12x13) - most common simple format
     (r"(\d{1,3})\s*[xX×]\s*(\d{1,3})",
      "bare_area"),
 
@@ -146,7 +144,7 @@ def _parse_dimension(text: str):
                 "meters": round(feet1 * 0.3048, 4),
             }
 
-        # ✅ NEW: bare NxN format (11X12)
+        # NEW: bare NxN format (11X12)
         if kind == "bare_area":
             dim1 = int(m.group(1))
             dim2 = int(m.group(2))
@@ -251,7 +249,7 @@ def run_ocr(image: np.ndarray) -> dict:
         }
         all_texts.append(entry)
 
-        # ✅ First check if it's a dimension
+        #  First check if it's a dimension
         parsed = _parse_dimension(raw_text)
         if parsed:
             entry["parsed"] = parsed

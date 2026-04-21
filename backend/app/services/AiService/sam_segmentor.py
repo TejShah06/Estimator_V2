@@ -1,7 +1,5 @@
 """
 Stage 3: SAM Wall Segmentation
-
-✅ FIXES v5:
   - Added overlap resolution: removes duplicate/overlapping rooms
   - YOLO zone-based segmentation with overlap filtering
   - Watershed fallback with overlap filtering
@@ -222,7 +220,7 @@ def _sam_segment_walls(image, binary, zones):
             room_masks.append(best_uint8)
             all_room_mask = cv2.bitwise_or(all_room_mask, best_uint8)
 
-    # ✅ Resolve overlaps
+    #  Resolve overlaps
     room_masks = _resolve_overlaps(room_masks)
 
     wall_mask = binary.copy()
@@ -304,7 +302,7 @@ def _zone_based_segmentation(image, binary, zones, doors):
 
     logger.info(f"  Raw zone masks: {len(room_masks)}")
 
-    # ✅ CRITICAL: Resolve overlapping rooms
+    #  CRITICAL: Resolve overlapping rooms
     room_masks = _resolve_overlaps(room_masks, overlap_threshold=0.25)
 
     wall_mask = binary.copy()
@@ -385,7 +383,7 @@ def _fallback_segment_walls(image, binary, doors):
 
         room_masks.append(mask)
 
-    # ✅ Resolve overlaps for watershed too
+    # Resolve overlaps for watershed too
     room_masks = _resolve_overlaps(room_masks)
 
     wall_mask = binary.copy()
