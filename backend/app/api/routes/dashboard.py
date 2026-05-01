@@ -21,7 +21,7 @@ def get_dashboard_stats(
     """Get dashboard statistics for current user"""
     user_id = current_user.id
 
-    # ✅ MANUAL ESTIMATIONS
+    # MANUAL ESTIMATIONS
     manual_count = db.query(ManualEstimation).filter(
         ManualEstimation.user_id == user_id,
         ManualEstimation.is_deleted == False
@@ -38,7 +38,7 @@ def get_dashboard_stats(
         for est in manual_estimations
     )
 
-    # ✅ AI PROJECTS
+    # AI PROJECTS
     ai_count = db.query(FloorPlanProject).filter(
         FloorPlanProject.user_id == user_id,
         FloorPlanProject.is_deleted == False
@@ -87,7 +87,7 @@ def get_recent_projects(
     user_id = current_user.id
     combined = []
 
-    # ✅ MANUAL ESTIMATIONS
+    # MANUAL ESTIMATIONS
     try:
         manual_list = db.query(ManualEstimation).filter(
             ManualEstimation.user_id == user_id,
@@ -116,7 +116,7 @@ def get_recent_projects(
     except Exception as e:
         logger.error(f"Manual fetch error: {e}")
 
-    # ✅ AI PROJECTS
+    # AI PROJECTS
     try:
         ai_list = db.query(FloorPlanProject).filter(
             FloorPlanProject.user_id == user_id,

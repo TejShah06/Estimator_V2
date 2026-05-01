@@ -6,7 +6,7 @@ from fastapi.security import HTTPBearer
 from app.db.database import engine, Base
 from fastapi.middleware.cors import CORSMiddleware
 import app.db.base  # important: registers all models
-from app.api.routes import floorplan, dashboard, project, manual
+from app.api.routes import floorplan, dashboard, project, manual,admin, threeD
 from app.api.routes import auth, user as user_route
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
@@ -40,7 +40,8 @@ app.include_router(manual.router)
 app.include_router(floorplan.router)
 app.include_router(dashboard.router)
 app.include_router(project.router)
-
+app.include_router(admin.router)
+app.include_router(threeD.router )
 # create previews directory if not exists
 preview_dir = Path("previews")
 preview_dir.mkdir(exist_ok=True)

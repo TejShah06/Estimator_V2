@@ -1,0 +1,353 @@
+{
+  "wall_height_ft": 10,
+  "rooms": [
+    {
+      "room_id": 1,
+      "label": "DINING",
+      "polygon_points": [
+        [
+          695,
+          33
+        ],
+        [
+          1159,
+          33
+        ],
+        [
+          1159,
+          283
+        ],
+        [
+          695,
+          283
+        ]
+      ],
+      "width_ft": 22.095238095238095,
+      "depth_ft": 11.904761904761905,
+      "centroid": [
+        921,
+        160
+      ],
+      "wall_thickness_ft": 0.3
+    },
+    {
+      "room_id": 2,
+      "label": "LIVING ROOM",
+      "polygon_points": [
+        [
+          844,
+          284
+        ],
+        [
+          1158,
+          284
+        ],
+        [
+          1158,
+          600
+        ],
+        [
+          844,
+          600
+        ]
+      ],
+      "width_ft": 14.952380952380953,
+      "depth_ft": 15.047619047619047,
+      "centroid": [
+        1000,
+        441
+      ],
+      "wall_thickness_ft": 0.3
+    },
+    {
+      "room_id": 3,
+      "label": "MASTER BEDROOM",
+      "polygon_points": [
+        [
+          402,
+          361
+        ],
+        [
+          707,
+          361
+        ],
+        [
+          707,
+          602
+        ],
+        [
+          402,
+          602
+        ]
+      ],
+      "width_ft": 14.523809523809524,
+      "depth_ft": 11.476190476190476,
+      "centroid": [
+        552,
+        482
+      ],
+      "wall_thickness_ft": 0.3
+    },
+    {
+      "room_id": 4,
+      "label": "BEDROOM",
+      "polygon_points": [
+        [
+          413,
+          36
+        ],
+        [
+          680,
+          36
+        ],
+        [
+          680,
+          283
+        ],
+        [
+          413,
+          283
+        ]
+      ],
+      "width_ft": 12.714285714285714,
+      "depth_ft": 11.761904761904763,
+      "centroid": [
+        549,
+        156
+      ],
+      "wall_thickness_ft": 0.3
+    },
+    {
+      "room_id": 5,
+      "label": "BEOROOM",
+      "polygon_points": [
+        [
+          38,
+          36
+        ],
+        [
+          282,
+          36
+        ],
+        [
+          282,
+          285
+        ],
+        [
+          38,
+          285
+        ]
+      ],
+      "width_ft": 11.619047619047619,
+      "depth_ft": 11.857142857142858,
+      "centroid": [
+        158,
+        156
+      ],
+      "wall_thickness_ft": 0.3
+    },
+    {
+      "room_id": 6,
+      "label": "BEDROOMT",
+      "polygon_points": [
+        [
+          41,
+          361
+        ],
+        [
+          283,
+          361
+        ],
+        [
+          283,
+          598
+        ],
+        [
+          41,
+          598
+        ]
+      ],
+      "width_ft": 11.523809523809524,
+      "depth_ft": 11.285714285714286,
+      "centroid": [
+        160,
+        481
+      ],
+      "wall_thickness_ft": 0.3
+    },
+    {
+      "room_id": 7,
+      "label": "Room 7",
+      "polygon_points": [
+        [
+          711,
+          426
+        ],
+        [
+          831,
+          426
+        ],
+        [
+          831,
+          602
+        ],
+        [
+          711,
+          602
+        ]
+      ],
+      "width_ft": 5.714285714285714,
+      "depth_ft": 8.380952380952381,
+      "centroid": [
+        771,
+        513
+      ],
+      "wall_thickness_ft": 0.3
+    },
+    {
+      "room_id": 8,
+      "label": "Room 8",
+      "polygon_points": [
+        [
+          292,
+          433
+        ],
+        [
+          395,
+          433
+        ],
+        [
+          395,
+          600
+        ],
+        [
+          292,
+          600
+        ]
+      ],
+      "width_ft": 4.904761904761905,
+      "depth_ft": 7.9523809523809526,
+      "centroid": [
+        341,
+        518
+      ],
+      "wall_thickness_ft": 0.3
+    },
+    {
+      "room_id": 9,
+      "label": "Room 9",
+      "polygon_points": [
+        [
+          293,
+          36
+        ],
+        [
+          393,
+          36
+        ],
+        [
+          393,
+          202
+        ],
+        [
+          293,
+          202
+        ]
+      ],
+      "width_ft": 4.761904761904762,
+      "depth_ft": 7.904761904761905,
+      "centroid": [
+        343,
+        113
+      ],
+      "wall_thickness_ft": 0.3
+    },
+    {
+      "room_id": 10,
+      "label": "Room 10",
+      "polygon_points": [
+        [
+          162,
+          286
+        ],
+        [
+          285,
+          286
+        ],
+        [
+          285,
+          353
+        ],
+        [
+          162,
+          353
+        ]
+      ],
+      "width_ft": 5.857142857142857,
+      "depth_ft": 3.1904761904761907,
+      "centroid": [
+        223,
+        320
+      ],
+      "wall_thickness_ft": 0.3
+    },
+    {
+      "room_id": 11,
+      "label": "Room 11",
+      "polygon_points": [
+        [
+          38,
+          289
+        ],
+        [
+          155,
+          289
+        ],
+        [
+          155,
+          351
+        ],
+        [
+          38,
+          351
+        ]
+      ],
+      "width_ft": 5.571428571428571,
+      "depth_ft": 2.9523809523809526,
+      "centroid": [
+        95,
+        319
+      ],
+      "wall_thickness_ft": 0.3
+    },
+    {
+      "room_id": 12,
+      "label": "Room 12",
+      "polygon_points": [
+        [
+          335,
+          207
+        ],
+        [
+          408,
+          207
+        ],
+        [
+          408,
+          280
+        ],
+        [
+          335,
+          280
+        ]
+      ],
+      "width_ft": 3.4761904761904763,
+      "depth_ft": 3.4761904761904763,
+      "centroid": [
+        375,
+        243
+      ],
+      "wall_thickness_ft": 0.3
+    }
+  ]
+}

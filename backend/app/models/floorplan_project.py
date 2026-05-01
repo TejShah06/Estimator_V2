@@ -88,3 +88,20 @@ class FloorPlanProject(Base):
     costs = relationship("FloorPlanCost", back_populates="project", cascade="all, delete-orphan")
     model_3d = relationship("FloorPlan3DModel", back_populates="project", uselist=False)
     elevation_views = relationship("FloorPlanElevationView", back_populates="project", cascade="all, delete-orphan")
+
+    
+def to_3d_generation_dict(self):
+    """Convert project to dictionary for 3D generation"""
+    return {
+        "project_id": self.id,
+        "project_name": self.project_name,
+        "rooms_json": self.rooms_json,
+        "openings_json": self.openings_json,
+        "walls_json": self.walls_json,
+        "total_area_sqft": self.total_area_sqft,
+        "rooms_count": self.rooms_count,
+        "doors_count": self.doors_count,
+        "windows_count": self.windows_count,
+        "walls_count": self.walls_count,
+        "total_floors": self.total_floors,
+    }

@@ -92,7 +92,7 @@ async def get_recent_projects(
     except HTTPException:
         raise
     except Exception as e:
-        print(f"❌ Error fetching recent projects: {str(e)}")
+        print(f"Error fetching recent projects: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -232,5 +232,5 @@ async def delete_project(
         raise
     except Exception as e:
         db.rollback()
-        print(f"❌ Error deleting project: {str(e)}")
+        print(f" Error deleting project: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
