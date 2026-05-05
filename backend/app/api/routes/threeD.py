@@ -1,17 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
-from fastapi.responses import FileResponse
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 import logging
-import shutil
-import json
-import os
+import io
 from pathlib import Path
 
-
-from app.services.generate_3d_service import generate_3d_service
+from app.services.generate_3d_service import generate_3d_service_memory
 from app.services.floorplan_service import analyze_floorplan
 from app.models.floorplan_project import FloorPlanProject
-from app.models.floorplan_3dmodel import FloorPlan3DModel
 from app.api.deps import get_current_user, get_db
 from app.models.user import User
 
@@ -33,20 +29,24 @@ async def upload_and_generate_3d(
     current_user: User = Depends(get_current_user)
 ):
     """
-    CASE 1: Upload floorplan image → Analyze → Generate 3D model
+    Upload floorplan → Analyze → Generate 3D → Return GLB binary directly
+    NO DATABASE SAVE FOR MODEL, NO DISK STORAGE
     """
     try:
+        logger.info(f"User {current_user.id} uploading floorplan: {file.filename}")
+        
         # Read file bytes
         file_bytes = await file.read()
         
-        # Save file for reference
+        # Save file temporarily for analysis
         file_path = UPLOAD_DIR / file.filename
         with open(file_path, "wb") as buffer:
             buffer.write(file_bytes)
         
-        logger.info(f"File uploaded: {file.filename}")
+        logger.info(f"File saved temporarily: {file.filename}")
         
-        # Step 1: Analyze the floorplan
+        # ===== STEP 1: Analyze Floorplan =====
+        logger.info("Starting AI analysis...")
         analysis_result = analyze_floorplan(
             image_bytes=file_bytes,
             db=db,
@@ -75,40 +75,60 @@ async def upload_and_generate_3d(
         
         logger.info(f"Floorplan analyzed. Project ID: {project_id}")
         
-        # Step 2: Generate 3D model
-        result = generate_3d_service(
+        # ===== STEP 2: Generate 3D Model in Memory =====
+        logger.info("Starting 3D generation (memory mode)...")
+        result = generate_3d_service_memory(
             floorplan_result=floorplan_result,
-            project_id=project_id,
-            db=db
+            project_id=project_id
         )
         
-        logger.info(f"3D model generated for project {project_id}")
+        glb_bytes = result["glb_bytes"]
         
-        return {
-            "status": "success",
-            "project_id": project_id,
-            "message": "Floorplan analyzed and 3D model generated",
-            "generation_time_seconds": result.get("generation_time"),
-            "model_id": result.get("model_id"),
-            "glb_file": result.get("glb_file"),
-            "download_url": f"/floorplan-3d/{project_id}/model/download"
-        }
+        logger.info(f"3D model generated: {len(glb_bytes)} bytes")
+        
+        # ===== STEP 3: Return GLB Binary Directly =====
+        return StreamingResponse(
+            io.BytesIO(glb_bytes),
+            media_type="application/octet-stream",
+            headers={
+                "Content-Disposition": f'attachment; filename="floorplan_{project_id}.glb"',
+                "X-Project-ID": str(project_id),
+                "X-Generation-Time": str(result["generation_time"]),
+                "X-File-Size": str(result["file_size"]),
+                "X-Wall-Count": str(result["wall_count"]),
+                "X-Door-Count": str(result["door_count"]),
+                "X-Window-Count": str(result["window_count"]),
+                "Access-Control-Expose-Headers": "X-Project-ID,X-Generation-Time,X-File-Size,X-Wall-Count,X-Door-Count,X-Window-Count"
+            }
+        )
     
     except Exception as e:
         logger.error(f"Upload and Generate Error: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to process: {str(e)}")
+    
+    finally:
+        # Clean up uploaded file
+        if file_path.exists():
+            try:
+                file_path.unlink()
+                logger.info(f"Cleaned up uploaded file: {file.filename}")
+            except Exception as e:
+                logger.warning(f"Failed to cleanup upload: {e}")
 
 
-@router.post("/{project_id}/generate")
-def generate_3d_from_existing(
+@router.post("/{project_id}/regenerate")
+async def regenerate_3d_from_existing(
     project_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
-    CASE 2: Generate 3D model from existing project ID
+    Regenerate 3D from existing analyzed project (memory mode)
     """
     try:
+        logger.info(f"Regenerating 3D for project {project_id}")
+        
+        # Verify ownership
         project = db.query(FloorPlanProject).filter(
             FloorPlanProject.id == project_id,
             FloorPlanProject.user_id == current_user.id
@@ -131,167 +151,30 @@ def generate_3d_from_existing(
             "total_floors": project.total_floors,
         }
 
-        result = generate_3d_service(
+        # Generate in memory
+        result = generate_3d_service_memory(
             floorplan_result=floorplan_result,
-            project_id=project_id,
-            db=db
+            project_id=project_id
         )
+        
+        glb_bytes = result["glb_bytes"]
+        
+        logger.info(f"3D model regenerated: {len(glb_bytes)} bytes")
 
-        return {
-            "status": "success",
-            "project_id": project_id,
-            "message": "3D model generated from existing project",
-            "generation_time_seconds": result.get("generation_time"),
-            "model_id": result.get("model_id"),
-            "glb_file": result.get("glb_file"),
-            "download_url": f"/floorplan-3d/{project_id}/model/download"
-        }
-    
-    except Exception as e:
-        logger.error(f"3D Generation Error: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"3D Generation failed: {str(e)}")
-
-
-@router.get("/{project_id}/model")
-def get_3d_model(
-    project_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    """
-    Get 3D model information for a project
-    """
-    try:
-        project = db.query(FloorPlanProject).filter(
-            FloorPlanProject.id == project_id,
-            FloorPlanProject.user_id == current_user.id
-        ).first()
-
-        if not project:
-            raise HTTPException(status_code=404, detail="Project not found")
-
-        model = db.query(FloorPlan3DModel).filter(
-            FloorPlan3DModel.project_id == project_id
-        ).first()
-
-        if not model:
-            raise HTTPException(status_code=404, detail="3D model not found")
-
-        return {
-            "status": "success",
-            "model": {
-                "id": model.id,
-                "project_id": model.project_id,
-                "model_name": model.model_name,
-                "glb_file": model.glb_file_path,
-                "obj_file": model.obj_file_path,
-                "vertices_count": model.vertices_count,
-                "faces_count": model.faces_count,
-                "generation_method": model.generation_method,
-                "processing_status": model.processing_status,
-                "generation_time": model.generation_time_seconds,
-                "created_at": model.created_at.isoformat() if model.created_at else None,
-                "download_url": f"/floorplan-3d/{project_id}/model/download"
+        return StreamingResponse(
+            io.BytesIO(glb_bytes),
+            media_type="application/octet-stream",
+            headers={
+                "Content-Disposition": f'attachment; filename="floorplan_{project_id}.glb"',
+                "X-Project-ID": str(project_id),
+                "X-Generation-Time": str(result["generation_time"]),
+                "X-File-Size": str(result["file_size"]),
+                "Access-Control-Expose-Headers": "X-Project-ID,X-Generation-Time,X-File-Size"
             }
-        }
-    
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error retrieving 3D model: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/{project_id}/model/download")
-def download_3d_model(
-    project_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    """
-    Download 3D model as GLB file
-    """
-    try:
-        project = db.query(FloorPlanProject).filter(
-            FloorPlanProject.id == project_id,
-            FloorPlanProject.user_id == current_user.id
-        ).first()
-
-        if not project:
-            raise HTTPException(status_code=404, detail="Project not found")
-
-        model = db.query(FloorPlan3DModel).filter(
-            FloorPlan3DModel.project_id == project_id
-        ).first()
-
-        if not model or not model.glb_file_path:
-            raise HTTPException(status_code=404, detail="3D model file not found")
-
-        file_path = model.glb_file_path
-        
-        # Handle both absolute and relative paths
-        if not os.path.isabs(file_path):
-            file_path = os.path.join(os.getcwd(), file_path)
-        
-        if not os.path.exists(file_path):
-            logger.error(f"Model file not found at: {file_path}")
-            raise HTTPException(status_code=404, detail="Model file not found on disk")
-
-        logger.info(f"Downloading 3D model: {file_path}")
-
-        return FileResponse(
-            path=file_path,
-            filename=f"floorplan_project_{project_id}.glb",
-            media_type="model/gltf-binary"
         )
-    
+
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error downloading 3D model: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/projects/{project_id}/models")
-def list_project_models(
-    project_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    """
-    List all 3D models for a project (for future multi-model support)
-    """
-    try:
-        project = db.query(FloorPlanProject).filter(
-            FloorPlanProject.id == project_id,
-            FloorPlanProject.user_id == current_user.id
-        ).first()
-
-        if not project:
-            raise HTTPException(status_code=404, detail="Project not found")
-
-        models = db.query(FloorPlan3DModel).filter(
-            FloorPlan3DModel.project_id == project_id
-        ).all()
-
-        return {
-            "status": "success",
-            "project_id": project_id,
-            "models_count": len(models),
-            "models": [
-                {
-                    "id": model.id,
-                    "model_name": model.model_name,
-                    "glb_file": model.glb_file_path,
-                    "generation_method": model.generation_method,
-                    "generation_time": model.generation_time_seconds,
-                    "created_at": model.created_at.isoformat() if model.created_at else None,
-                    "download_url": f"/floorplan-3d/{project_id}/model/download"
-                }
-                for model in models
-            ]
-        }
-    
-    except Exception as e:
-        logger.error(f"Error listing models: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Regenerate Error: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to regenerate: {str(e)}")

@@ -29,7 +29,7 @@ try:
     db.add(user)
     db.commit()
     db.refresh(user)
-    print(f"   ✅ User created with ID: {user.id}")
+    print(f"     User created with ID: {user.id}")
 
     # Test 2: Create AI project
     print("\n2️⃣ Creating AI project...")
@@ -48,8 +48,8 @@ try:
     db.add(project_ai)
     db.commit()
     db.refresh(project_ai)
-    print(f"   ✅ AI Project created with ID: {project_ai.id}")
-    print(f"   ✅ Project code (auto-generated): {project_ai.project_code}")
+    print(f"     AI Project created with ID: {project_ai.id}")
+    print(f"     Project code (auto-generated): {project_ai.project_code}")
 
     # Test 3: Create Manual project
     print("\n3️⃣ Creating Manual project...")
@@ -66,8 +66,8 @@ try:
     db.add(project_manual)
     db.commit()
     db.refresh(project_manual)
-    print(f"   ✅ Manual Project created with ID: {project_manual.id}")
-    print(f"   ✅ Project code (auto-generated): {project_manual.project_code}")
+    print(f"     Manual Project created with ID: {project_manual.id}")
+    print(f"     Project code (auto-generated): {project_manual.project_code}")
 
     # Test 4: Add room to AI project (WITH geometry)
     print("\n4️⃣ Adding room to AI project (with geometry)...")
@@ -90,9 +90,9 @@ try:
     )
     db.add(room_ai)
     db.commit()
-    print(f"   ✅ Room added with ID: {room_ai.id}")
-    print(f"   ✅ Has geometry: {room_ai.has_geometry}")
-    print(f"   ✅ Coordinates: ({room_ai.x_min}, {room_ai.y_min}) to ({room_ai.x_max}, {room_ai.y_max})")
+    print(f"     Room added with ID: {room_ai.id}")
+    print(f"     Has geometry: {room_ai.has_geometry}")
+    print(f"     Coordinates: ({room_ai.x_min}, {room_ai.y_min}) to ({room_ai.x_max}, {room_ai.y_max})")
 
     # Test 5: Add room to Manual project (NO geometry)
     print("\n5️⃣ Adding room to Manual project (no geometry)...")
@@ -113,9 +113,9 @@ try:
     )
     db.add(room_manual)
     db.commit()
-    print(f"   ✅ Room added with ID: {room_manual.id}")
-    print(f"   ✅ Has geometry: {room_manual.has_geometry}")
-    print(f"   ✅ Area only: {room_manual.area_sqft} sqft")
+    print(f"     Room added with ID: {room_manual.id}")
+    print(f"     Has geometry: {room_manual.has_geometry}")
+    print(f"     Area only: {room_manual.area_sqft} sqft")
 
     # Test 6: Add cost to AI project
     print("\n6️⃣ Adding cost to AI project...")
@@ -134,8 +134,8 @@ try:
     )
     db.add(cost)
     db.commit()
-    print(f"   ✅ Cost added with ID: {cost.id}")
-    print(f"   ✅ Category: {cost.category}, Total: ${cost.grand_total}")
+    print(f"     Cost added with ID: {cost.id}")
+    print(f"     Category: {cost.category}, Total: ${cost.grand_total}")
 
     # Test 7: Test relationships (IMPORTANT!)
     print("\n7️⃣ Testing ORM relationships...")
@@ -147,25 +147,25 @@ try:
         joinedload(FloorPlanProject.user)
     ).filter_by(id=project_ai.id).first()
     
-    print(f"   ✅ Project: {project.project_name}")
-    print(f"   ✅ Belongs to user: {project.user.username}")
-    print(f"   ✅ Has {len(project.rooms)} room(s)")
-    print(f"   ✅ Has {len(project.costs)} cost item(s)")
+    print(f"     Project: {project.project_name}")
+    print(f"     Belongs to user: {project.user.username}")
+    print(f"     Has {len(project.rooms)} room(s)")
+    print(f"     Has {len(project.costs)} cost item(s)")
     
     if project.rooms:
         room = project.rooms[0]
-        print(f"   ✅ First room: {room.room_name} ({room.area_sqft} sqft)")
+        print(f"     First room: {room.room_name} ({room.area_sqft} sqft)")
     
     if project.costs:
         cost_item = project.costs[0]
-        print(f"   ✅ First cost: {cost_item.category} - ${cost_item.grand_total}")
+        print(f"     First cost: {cost_item.category} - ${cost_item.grand_total}")
 
     # Test 8: Query by source type
     print("\n8️⃣ Testing queries by source type...")
     ai_projects = db.query(FloorPlanProject).filter_by(source_type="ai_upload").count()
     manual_projects = db.query(FloorPlanProject).filter_by(source_type="manual_form").count()
-    print(f"   ✅ AI projects: {ai_projects}")
-    print(f"   ✅ Manual projects: {manual_projects}")
+    print(f"     AI projects: {ai_projects}")
+    print(f"     Manual projects: {manual_projects}")
 
     # Cleanup
     print("\n🧹 Cleaning up test data...")
@@ -176,15 +176,15 @@ try:
     db.delete(project_manual)
     db.delete(user)
     db.commit()
-    print("   ✅ Test data cleaned up")
+    print("     Test data cleaned up")
 
-    print("\n✅ ALL RELATIONSHIP TESTS PASSED! 🎉")
+    print("\n  ALL RELATIONSHIP TESTS PASSED! 🎉")
     print("\n📊 Summary:")
-    print("   ✅ Models working correctly")
-    print("   ✅ Relationships functioning")
-    print("   ✅ AI and Manual workflows supported")
-    print("   ✅ Database triggers working (project_code auto-generated)")
-    print("   ✅ NULL geometry allowed for manual entries")
+    print("     Models working correctly")
+    print("     Relationships functioning")
+    print("     AI and Manual workflows supported")
+    print("     Database triggers working (project_code auto-generated)")
+    print("     NULL geometry allowed for manual entries")
     print("\n🚀 Ready to proceed to schemas and services!")
 
 except Exception as e:

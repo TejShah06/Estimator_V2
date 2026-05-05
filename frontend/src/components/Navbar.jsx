@@ -14,7 +14,8 @@ import {
   LayoutDashboard,
   Calculator,
   Home,
-  Info
+  Info,
+  Box
 } from "lucide-react";
 
 export default function Navbar() {
@@ -69,6 +70,12 @@ export default function Navbar() {
       description: "Leverage AI for accurate construction estimates",
       icon: Zap,
       to: "/ai-estimation",
+    },
+    {
+      title: "3D Model Viewer",
+      description: "Generate and view 3D models from floor plans",
+      icon: Box,
+      to: "/3d-service",
     }
   ];
 
@@ -147,7 +154,7 @@ export default function Navbar() {
               </AnimatePresence>
             </div>
 
-            {/* Services Dropdown - Only visible when logged in */}
+            {/* Services Dropdown */}
             {isLoggedIn && (
               <div className="relative">
                 <button
@@ -267,10 +274,12 @@ export default function Navbar() {
                 >
                   Home
                 </Link>
-                
+
                 {/* Mobile Company Links */}
                 <div className="px-4 py-2">
-                  <div className="text-sm font-semibold text-gray-500 mb-2">Company</div>
+                  <div className="text-sm font-semibold text-gray-500 mb-2">
+                    Company
+                  </div>
                   <div className="space-y-1 pl-2">
                     {companyLinks.map((item) => (
                       <Link
@@ -286,10 +295,12 @@ export default function Navbar() {
                   </div>
                 </div>
 
-                {/* Mobile Services Links - Only visible when logged in */}
+                {/* Mobile Services Links */}
                 {isLoggedIn && (
                   <div className="px-4 py-2">
-                    <div className="text-sm font-semibold text-gray-500 mb-2">Services</div>
+                    <div className="text-sm font-semibold text-gray-500 mb-2">
+                      Services
+                    </div>
                     <div className="space-y-1 pl-2">
                       {servicesLinks.map((item) => (
                         <Link

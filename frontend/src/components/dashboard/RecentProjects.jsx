@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react"
-import { useNavigate } from "react-router-dom" // ✅ Add this import
+import { useNavigate } from "react-router-dom" //   Add this import
 import { motion, AnimatePresence } from "framer-motion"
 import {
   ArrowRight,
@@ -15,7 +15,7 @@ import {
   Check,
   AlertCircle
 } from "lucide-react"
-import axios from "axios" // ✅ Add this import
+import axios from "axios" //   Add this import
 
 const timeAgo = (date) => {
   if (!date) return ""
@@ -347,7 +347,7 @@ const ProjectRow = ({ project, index, onDelete, onView }) => {
 
 //  Main Component
 const RecentProjects = ({ projects, loading, onViewAll, onProjectsChange }) => {
-  const navigate = useNavigate() // ✅ Add navigate hook
+  const navigate = useNavigate() //   Add navigate hook
   const [filter, setFilter] = useState("all")
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, project: null })
   const [isDeleting, setIsDeleting] = useState(false)

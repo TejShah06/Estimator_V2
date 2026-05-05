@@ -16,21 +16,42 @@ def get_db():
     finally:
         db.close()
 
-def get_current_user(token: str = Depends(oauth2_scheme),
-                     db: Session = Depends(get_db)):
-
+def get_current_user(
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username = payload.get("sub")
+
+        if username is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
 
     user = db.query(User).filter(User.username == username).first()
 
+    # User not found
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
 
-    return user 
+    #  Block deleted users
+    if user.is_deleted:
+        raise HTTPException(
+            status_code=401,
+            detail="This account has been deleted."
+        )
+
+    #  Block deactivated users
+    if not user.is_active:
+        raise HTTPException(
+            status_code=401,
+            detail="This account has been deactivated. Contact support."
+        )
+
+    return user
+
 
 
 def get_admin_user(
@@ -46,6 +67,8 @@ def get_admin_user(
             detail="Access denied. Admin privileges required."
         )
 
+    # This check is now redundant since get_current_user
+    # already blocks inactive users, but kept for explicit clarity
     if not current_user.is_active:
         raise HTTPException(
             status_code=403,

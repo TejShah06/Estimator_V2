@@ -21,7 +21,7 @@ print("🧪 Simple Model Test\n")
 # Create tables
 print("Creating tables...")
 Base.metadata.create_all(bind=engine)
-print("✅ Tables created\n")
+print("  Tables created\n")
 
 # Test database
 db = SessionLocal()
@@ -37,7 +37,7 @@ try:
     db.add(user)
     db.commit()
     db.refresh(user)
-    print(f"   ✅ User created with ID: {user.id}\n")
+    print(f"     User created with ID: {user.id}\n")
 
     print("2️⃣ Creating AI project...")
     project = FloorPlanProject(
@@ -51,7 +51,7 @@ try:
     db.add(project)
     db.commit()
     db.refresh(project)
-    print(f"   ✅ AI Project created with ID: {project.id}\n")
+    print(f"     AI Project created with ID: {project.id}\n")
 
     print("3️⃣ Creating AI Analysis...")
     ai_analysis = AIAnalysis(
@@ -64,7 +64,7 @@ try:
     )
     db.add(ai_analysis)
     db.commit()
-    print(f"   ✅ AI Analysis created\n")
+    print(f"     AI Analysis created\n")
 
     print("4️⃣ Creating room (from AI)...")
     room = FloorPlanRoom(
@@ -81,7 +81,7 @@ try:
     )
     db.add(room)
     db.commit()
-    print(f"   ✅ Room created\n")
+    print(f"     Room created\n")
 
     print("5️⃣ Creating cost (AI detection)...")
     cost_ai = FloorPlanCost(
@@ -98,7 +98,7 @@ try:
     )
     db.add(cost_ai)
     db.commit()
-    print(f"   ✅ AI Cost added\n")
+    print(f"     AI Cost added\n")
 
     print("6️⃣ Creating manual cost...")
     cost_manual = FloorPlanCost(
@@ -114,20 +114,20 @@ try:
     )
     db.add(cost_manual)
     db.commit()
-    print(f"   ✅ Manual Cost added\n")
+    print(f"     Manual Cost added\n")
 
     print("7️⃣ Testing relationships...")
     proj = db.query(FloorPlanProject).filter_by(id=project.id).first()
-    print(f"   ✅ Project: {proj.project_name}")
-    print(f"   ✅ Rooms: {len(proj.rooms)}")
-    print(f"   ✅ Costs: {len(proj.costs)}")
-    print(f"   ✅ AI Analysis: {proj.ai_analysis is not None}\n")
+    print(f"     Project: {proj.project_name}")
+    print(f"     Rooms: {len(proj.rooms)}")
+    print(f"     Costs: {len(proj.costs)}")
+    print(f"     AI Analysis: {proj.ai_analysis is not None}\n")
 
     print("8️⃣ Filtering costs by source...")
     ai_costs = db.query(FloorPlanCost).filter_by(project_id=project.id, source_type="ai_detection").all()
     manual_costs = db.query(FloorPlanCost).filter_by(project_id=project.id, source_type="manual_entry").all()
-    print(f"   ✅ AI Costs: {len(ai_costs)}")
-    print(f"   ✅ Manual Costs: {len(manual_costs)}\n")
+    print(f"     AI Costs: {len(ai_costs)}")
+    print(f"     Manual Costs: {len(manual_costs)}\n")
 
     print("🧹 Cleaning up...")
     db.delete(cost_manual)
@@ -138,13 +138,13 @@ try:
     db.delete(user)
     db.commit()
     
-    print("\n✅✅✅ ALL TESTS PASSED! ✅✅✅\n")
+    print("\n    ALL TESTS PASSED!    \n")
     print("📊 Summary:")
-    print("   ✅ User model fixed (no Estimate reference)")
-    print("   ✅ AI Analysis model created")
-    print("   ✅ Unified cost table working")
-    print("   ✅ Source tracking (AI vs Manual) works")
-    print("   ✅ Relationships properly configured")
+    print("     User model fixed (no Estimate reference)")
+    print("     AI Analysis model created")
+    print("     Unified cost table working")
+    print("     Source tracking (AI vs Manual) works")
+    print("     Relationships properly configured")
 
 except Exception as e:
     print(f"\n❌ Error: {e}")

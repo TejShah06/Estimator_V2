@@ -14,7 +14,7 @@ from sqlalchemy import text  # FIX: Import text for raw SQL
 print("🔧 Creating tables from models...")
 try:
     Base.metadata.create_all(bind=engine)
-    print("✅ Tables created/verified successfully!")
+    print("  Tables created/verified successfully!")
 except Exception as e:
     print(f"❌ Error creating tables: {e}")
     sys.exit(1)
@@ -24,7 +24,7 @@ print("\n📊 Testing database connection...")
 try:
     db = SessionLocal()
     result = db.execute(text("SELECT 1"))  # FIX: Wrap in text()
-    print("✅ Database connection successful!")
+    print("  Database connection successful!")
     db.close()
 except Exception as e:
     print(f"❌ Database connection failed: {e}")
@@ -55,7 +55,7 @@ try:
     print("Tables found in database:")
     for table in expected_tables:
         if table in tables:
-            print(f"  ✅ {table}")
+            print(f"    {table}")
         else:
             print(f"  ❌ {table} - MISSING!")
     

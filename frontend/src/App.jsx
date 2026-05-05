@@ -1,4 +1,3 @@
-
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 // ── Existing Pages ──
@@ -27,6 +26,10 @@ import AdminProjects from "./pages/admin/AdminProjects";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminLogs from "./pages/admin/AdminLogs";
+
+// ── 3D Model Pages ──
+import ThreeDService from "./pages/ThreeDService";
+import ThreeDViewer from "./pages/ThreeDViewer";
 
 function App() {
   return (
@@ -85,6 +88,24 @@ function App() {
           }
         />
 
+        {/* ── 3D Model Routes (Protected) ── */}
+        <Route
+          path="/3d-service"
+          element={
+            <ProtectedRoute>
+              <ThreeDService />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/3d-viewer/:project_id"
+          element={
+            <ProtectedRoute>
+              <ThreeDViewer />
+            </ProtectedRoute>
+          }
+        />
+
         {/* ── Admin Protected Routes ── */}
         <Route
           path="/admin/dashboard"
@@ -137,7 +158,7 @@ function App() {
 
       </Routes>
     </BrowserRouter>
-  )
+  );
 }
 
 export default App;

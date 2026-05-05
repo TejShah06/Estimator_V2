@@ -22,7 +22,7 @@ import {
   TrendingUp,
   Eye,
   Settings,
-  Type // ✅ Add Type icon
+  Type //   Add Type icon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import axios from 'axios';
@@ -38,7 +38,7 @@ const AIEstimation = () => {
   const [error, setError] = useState(null);
   const [analysisResult, setAnalysisResult] = useState(null);
   
-  // ✅ Add project name state
+  //   Add project name state
   const [projectName, setProjectName] = useState('');
 
   // Custom rates state
@@ -131,7 +131,7 @@ const AIEstimation = () => {
       setFile(selectedFile);
       setError(null);
 
-      // ✅ Auto-populate project name from filename if empty
+      //   Auto-populate project name from filename if empty
       if (!projectName && selectedFile.name) {
         const nameWithoutExt = selectedFile.name.replace(/\.[^/.]+$/, "");
         setProjectName(nameWithoutExt);
@@ -171,7 +171,7 @@ const AIEstimation = () => {
     }));
   };
 
-  // ✅ Updated Start Analysis function
+  //   Updated Start Analysis function
   const startAnalysis = async () => {
     setStep(3);
     setLoading(true);
@@ -185,7 +185,7 @@ const AIEstimation = () => {
       let response;
       const params = new URLSearchParams();
       
-      // ✅ Add project name to params
+      //   Add project name to params
       if (projectName.trim()) {
         params.append('project_name', projectName.trim());
       }
@@ -248,7 +248,7 @@ const AIEstimation = () => {
     setUseCustomRates(false);
     setAnalysisResult(null);
     setError(null);
-    setProjectName(''); // ✅ Reset project name
+    setProjectName(''); //   Reset project name
   };
 
   // Format currency
@@ -381,7 +381,7 @@ const AIEstimation = () => {
                         onClick={() => {
                           setFile(null);
                           setPreview(null);
-                          setProjectName(''); // ✅ Clear project name when removing file
+                          setProjectName(''); //   Clear project name when removing file
                         }}
                         className="absolute top-4 right-4 p-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg backdrop-blur-sm transition-colors"
                       >
@@ -425,7 +425,7 @@ const AIEstimation = () => {
             >
               <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
                 
-                {/* ✅ Project Name Field - NEW */}
+                {/*   Project Name Field - NEW */}
                 <div className="mb-8">
                   <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
                     <Type className="w-4 h-4 text-cyan-400" />

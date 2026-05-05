@@ -13,7 +13,7 @@ import {
   Eye
 } from "lucide-react"
 
-// ✅ CORRECTED PATH: ../../services/api
+//   CORRECTED PATH: ../../services/api
 import api from "../../services/api"
 
 const QuickUpload = () => {
@@ -68,7 +68,7 @@ const QuickUpload = () => {
     setProgress(0)
   }
 
-  // ✅ Handle Analysis
+  //   Handle Analysis
 const handleAnalyze = async () => {
   if (!file) return
 
@@ -86,7 +86,7 @@ const handleAnalyze = async () => {
     setProgress(100)
     setResult(response.data)
 
-    // ✅ Add this safety check
+    //   Add this safety check
     if (!response.data || !response.data.id) {
       console.error("Backend response missing ID:", response.data)
       setError("Analysis succeeded but failed to save project ID.")
@@ -108,7 +108,7 @@ const handleAnalyze = async () => {
   }
 }
 
-  // ✅ Manual View Report
+  //   Manual View Report
   const handleViewReport = () => {
     if (result?.id) {
       navigate(`/report/ai-${result.id}`)

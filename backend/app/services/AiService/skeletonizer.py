@@ -49,8 +49,8 @@ def _hough_lines(skeleton: np.ndarray) -> list:
         skeleton,
         rho=1,
         theta=np.pi / 180,
-        threshold=15,      # ✅ Lowered from 30 to catch shorter walls
-        minLineLength=15,   # ✅ Lowered from 20
+        threshold=15,      #   Lowered from 30 to catch shorter walls
+        minLineLength=15,   #   Lowered from 20
         maxLineGap=10,
     )
 

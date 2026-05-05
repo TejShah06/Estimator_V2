@@ -70,7 +70,7 @@ export default function AdminSettings() {
         {/* Success Message */}
         {success && (
           <div className="bg-green-500/10 border border-green-500/30 text-green-400 px-4 py-3 rounded-lg text-sm">
-            ✅ Settings saved successfully!
+              Settings saved successfully!
           </div>
         )}
 

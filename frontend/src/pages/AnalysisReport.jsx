@@ -38,7 +38,7 @@ const formatArea = (area) => {
   return Math.round(area).toLocaleString("en-IN")
 }
 
-// ✅ Stats Card Component
+//   Stats Card Component
 const StatCard = ({ icon: Icon, label, value, subtext, color = "blue" }) => {
   const colorClasses = {
     blue: "from-blue-500/20 to-cyan-500/20 border-blue-500/30",
@@ -84,7 +84,7 @@ const StatCard = ({ icon: Icon, label, value, subtext, color = "blue" }) => {
   )
 }
 
-// ✅ Cost Breakdown Card
+//   Cost Breakdown Card
 const CostBreakdownCard = ({ breakdown, total }) => {
   const items = [
     { key: "flooring", label: "Flooring", color: "from-blue-500 to-cyan-500" },
@@ -153,7 +153,7 @@ const CostBreakdownCard = ({ breakdown, total }) => {
   )
 }
 
-// ✅ Room Details Table
+//   Room Details Table
 const RoomDetailsTable = ({ rooms }) => {
   if (!rooms || rooms.length === 0) {
     return (
@@ -268,7 +268,7 @@ const RoomDetailsTable = ({ rooms }) => {
   )
 }
 
-// ✅ NEW: SVG Floor Plan Generator Component
+//   NEW: SVG Floor Plan Generator Component
 const SVGFloorPlanGenerator = ({ rooms, projectName }) => {
   if (!rooms || rooms.length === 0) {
     return (
@@ -493,7 +493,7 @@ const SVGFloorPlanGenerator = ({ rooms, projectName }) => {
   )
 }
 
-// ✅ UPDATED: Annotated Floor Plan Component
+//   UPDATED: Annotated Floor Plan Component
 const AnnotatedFloorPlan = ({ previewPath, projectName, projectId, rooms }) => {
   return (
     <motion.div
@@ -528,7 +528,7 @@ const AnnotatedFloorPlan = ({ previewPath, projectName, projectId, rooms }) => {
   )
 }
 
-// ✅ Main Report Page
+//   Main Report Page
 const AnalysisReport = () => {
   const { projectId } = useParams()
   const navigate = useNavigate()

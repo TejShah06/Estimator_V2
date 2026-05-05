@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-
 from app.schemas.user_schema import UserCreate, UserLogin, ForgotPasswordSchema as ForgotPassword, ResetPasswordSchema as ResetPassword
 from app.models.user import User
 from app.api.deps import get_db
@@ -39,7 +38,6 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
 
     return {"message": "User registered successfully"}
 
-
 @router.post("/login")
 def login(user: UserLogin, db: Session = Depends(get_db)):
 
@@ -48,9 +46,25 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
         (User.username == user.identifier)
     ).first()
 
+    # User not found
     if not db_user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
+    # Block deleted users
+    if db_user.is_deleted:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid credentials"
+        )
+
+    # Block deactivated users
+    if not db_user.is_active:
+        raise HTTPException(
+            status_code=401,
+            detail="Your account has been deactivated. Contact support."
+        )
+
+    # Wrong password
     if not verify_password(user.password, db_user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
@@ -61,15 +75,12 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
     return {
         "access_token": token,
         "token_type": "bearer",
-           "user": {
+        "user": {
             "id": db_user.id,
-            "username": db_user.username,
-            "email": db_user.email,
             "role": db_user.role,
-            "full_name": db_user.full_name,
+            "username": db_user.username,
         }
     }
-
 
 @router.post("/forgot-password")
 def forgot_password(data: ForgotPassword, db: Session = Depends(get_db)):
