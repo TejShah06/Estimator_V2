@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
@@ -14,39 +13,17 @@ import {
   X,
   Building2,
   ChevronRight,
+  Crown,       
 } from "lucide-react"
 
 const navItems = [
-  {
-    path: "/admin/dashboard",
-    label: "Dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    path: "/admin/users",
-    label: "Users",
-    icon: Users,
-  },
-  {
-    path: "/admin/projects",
-    label: "Projects",
-    icon: FolderOpen,
-  },
-  {
-    path: "/admin/analytics",
-    label: "Analytics",
-    icon: BarChart2,
-  },
-  {
-    path: "/admin/settings",
-    label: "Settings",
-    icon: Settings,
-  },
-  {
-    path: "/admin/logs",
-    label: "Activity Logs",
-    icon: ScrollText,
-  },
+  { path: "/admin/dashboard",     label: "Dashboard",     icon: LayoutDashboard },
+  { path: "/admin/users",         label: "Users",         icon: Users           },
+  { path: "/admin/projects",      label: "Projects",      icon: FolderOpen      },
+  { path: "/admin/analytics",     label: "Analytics",     icon: BarChart2       },
+  { path: "/admin/subscriptions", label: "Subscriptions", icon: Crown           }, 
+  { path: "/admin/settings",      label: "Settings",      icon: Settings        },
+  { path: "/admin/logs",          label: "Activity Logs", icon: ScrollText      },
 ]
 
 export default function AdminLayout({ children }) {
@@ -54,7 +31,8 @@ export default function AdminLayout({ children }) {
   const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  const username = localStorage.getItem("username") || "Admin"
+   
+const username = sessionStorage.getItem("username") || localStorage.getItem("username") || "Admin"
 
   const handleLogout = () => {
     localStorage.clear()
@@ -92,9 +70,11 @@ export default function AdminLayout({ children }) {
       </div>
 
       {/* Nav Items */}
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path
+          const isSubscriptions = item.path === "/admin/subscriptions"
+
           return (
             <motion.button
               key={item.path}
@@ -105,7 +85,11 @@ export default function AdminLayout({ children }) {
               }}
               className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg transition-all text-sm font-medium ${
                 isActive
-                  ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30"
+                  ? isSubscriptions
+                    ? "bg-purple-500/20 text-purple-400 border border-purple-500/30"
+                    : "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30"
+                  : isSubscriptions
+                  ? "text-purple-400/70 hover:bg-purple-500/10 hover:text-purple-400"
                   : "text-gray-400 hover:bg-slate-800 hover:text-white"
               }`}
             >
@@ -181,10 +165,8 @@ export default function AdminLayout({ children }) {
 
           <div className="text-gray-400 text-sm hidden md:block">
             {new Date().toLocaleDateString("en-IN", {
-              weekday: "long",
-              year: "numeric",
-              month: "long",
-              day: "numeric",
+              weekday: "long", year: "numeric",
+              month: "long",   day: "numeric",
             })}
           </div>
         </div>

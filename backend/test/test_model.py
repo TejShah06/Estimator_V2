@@ -16,7 +16,7 @@ try:
     Base.metadata.create_all(bind=engine)
     print("  Tables created/verified successfully!")
 except Exception as e:
-    print(f"❌ Error creating tables: {e}")
+    print(f"  Error creating tables: {e}")
     sys.exit(1)
 
 # Test 2: Test database connection (FIXED)
@@ -27,7 +27,7 @@ try:
     print("  Database connection successful!")
     db.close()
 except Exception as e:
-    print(f"❌ Database connection failed: {e}")
+    print(f"  Database connection failed: {e}")
     import traceback
     traceback.print_exc()
     sys.exit(1)
@@ -57,14 +57,14 @@ try:
         if table in tables:
             print(f"    {table}")
         else:
-            print(f"  ❌ {table} - MISSING!")
+            print(f"    {table} - MISSING!")
     
     # Show actual table count
     print(f"\n📊 Total tables in database: {len(tables)}")
     
     db.close()
 except Exception as e:
-    print(f"❌ Error checking tables: {e}")
+    print(f"  Error checking tables: {e}")
     import traceback
     traceback.print_exc()
 

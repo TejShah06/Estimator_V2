@@ -26,10 +26,15 @@ import AdminProjects from "./pages/admin/AdminProjects";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminLogs from "./pages/admin/AdminLogs";
+import AdminSubscriptions from "./pages/admin/AdminSubscription"
 
 // ── 3D Model Pages ──
 import ThreeDService from "./pages/ThreeDService";
 import ThreeDViewer from "./pages/ThreeDViewer";
+
+// ── Subscription Pages ──
+import Pricing from "./pages/subscription/Pricing";
+import Subscription from "./pages/subscription/Subscription";
 
 function App() {
   return (
@@ -105,6 +110,18 @@ function App() {
             </ProtectedRoute>
           }
         />
+        {/* ── subscription Routes (Protected) ── */}
+        <Route path="/pricing" 
+        element={
+        <ProtectedRoute>
+          <Pricing />
+        </ProtectedRoute>} />
+
+        <Route path="/subscription" 
+        element={
+        <ProtectedRoute>
+          <Subscription />
+        </ProtectedRoute>} />
 
         {/* ── Admin Protected Routes ── */}
         <Route
@@ -152,6 +169,14 @@ function App() {
           element={
             <AdminGuard>
               <AdminLogs />
+            </AdminGuard>
+          }
+        />
+        <Route
+          path="/admin/subscriptions"
+          element={
+            <AdminGuard>
+              <AdminSubscriptions />
             </AdminGuard>
           }
         />

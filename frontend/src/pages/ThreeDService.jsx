@@ -19,7 +19,8 @@ import {
   Layers,
   Sparkles
 } from "lucide-react";
-
+import { getToken } from "@/utils/auth";
+import UpgradePopup from "@/components/UpgradePopup";
 const API_BASE = "http://localhost:8000";
 
 const PROCESSING_STEPS = [
@@ -41,6 +42,8 @@ export default function ThreeDService() {
   const [currentStep,    setCurrentStep]    = useState(0);
   const [error,          setError]          = useState(null);
   const [success,        setSuccess]        = useState(false);
+  const [upgradeOpen,    setUpgradeOpen]    = useState(false);
+  const [upgradeMessage, setUpgradeMessage] = useState("")
 
   // ── helpers ──────────────────────────────────────────────────────────────
 
@@ -97,83 +100,127 @@ export default function ThreeDService() {
       next();
     });
 
-  const handleGenerate = async () => {
-    if (!selectedFile) { 
-      setError("Please select a floor plan image."); 
-      return; 
-    }
+const handleGenerate = async () => {
+  if (!selectedFile) {
+    setError("Please select a floor plan image.");
+    return;
+  }
 
-    const token = localStorage.getItem("token");
-    if (!token) { 
-      navigate("/login"); 
-      return; 
-    }
+  //    Use getToken() instead of localStorage
+  const token = getToken();
+  if (!token) {
+    navigate("/login");
+    return;
+  }
 
-    setError(null);
-    setIsProcessing(true);
-    setCurrentStep(0);
+  setError(null);
+  setIsProcessing(true);
+  setCurrentStep(0);
 
-    try {
-      const formData = new FormData();
-      formData.append("file", selectedFile);
+  try {
+    const formData = new FormData();
+    formData.append("file", selectedFile);
 
-      // Run animation in parallel with API call
-      const [response] = await Promise.all([
-        fetch(`${API_BASE}/floorplan-3d/upload-and-generate`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData,
-        }),
-        animateSteps(),
-      ]);
+    const [response] = await Promise.all([
+      fetch(`${API_BASE}/floorplan-3d/upload-and-generate`, {
+        method:  "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body:    formData,
+      }),
+      animateSteps(),
+    ]);
 
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err.detail || `Server error ${response.status}`);
-      }
+    //    Handle non-OK responses properly
+    if (!response.ok) {
+      let errorDetail = `Server error ${response.status}`
 
-      //   NEW: Get GLB binary blob directly
-      const glb_blob = await response.blob();
-      
-      //   NEW: Get metadata from response headers
-      const projectId = response.headers.get("X-Project-ID");
-      const genTime = response.headers.get("X-Generation-Time");
-      const fileSize = response.headers.get("X-File-Size");
-      const wallCount = response.headers.get("X-Wall-Count");
-      const doorCount = response.headers.get("X-Door-Count");
-      const windowCount = response.headers.get("X-Window-Count");
+      try {
+        const errJson = await response.json()
 
-      //   NEW: Create blob URL for Three.js
-      const glb_url = URL.createObjectURL(glb_blob);
+        if (response.status === 403) {
+          //    403 = limit reached → show upgrade popup
+          const detail = errJson.detail
 
-      console.log(`GLB received: ${fileSize} bytes`);
+          // detail can be string or object
+          const msg = typeof detail === "object"
+            ? detail?.message || "You have reached your 3D render limit for this month."
+            : typeof detail === "string"
+            ? detail
+            : "You have reached your 3D render limit for this month."
 
-      setSuccess(true);
+          setUpgradeMessage(msg)
+          setUpgradeOpen(true)
+          setIsProcessing(false)
+          setCurrentStep(0)
+          return
 
-      // Navigate to viewer with GLB data
-      setTimeout(() => {
-        navigate(`/3d-viewer/${projectId}`, {
-          state: {
-            glb_url,        // blob:http://localhost:3000/...
-            glb_blob,       // binary data for download
-            metadata: {
-              project_id: projectId,
-              generation_time: parseFloat(genTime),
-              file_size: parseInt(fileSize),
-              wall_count: parseInt(wallCount),
-              door_count: parseInt(doorCount),
-              window_count: parseInt(windowCount),
-            },
-          },
-        });
-      }, 1500);
+        } else if (response.status === 401) {
+          // 401 = unauthorized → redirect to login
+          navigate("/login")
+          return
 
-    } catch (err) {
+        } else {
+          // Other errors
+          const detail = errJson.detail
+          errorDetail = typeof detail === "string"
+            ? detail
+            : typeof detail === "object"
+            ? detail?.message || JSON.stringify(detail)
+            : `Server error ${response.status}`
+        }
+
+      }catch (err) {
+    //     Check message to avoid showing generic error when popup is shown
+    if (err.message && !err.message.includes("Server error 403")) {
       setError(err.message || "Something went wrong. Please try again.");
-      setIsProcessing(false);
-      setCurrentStep(0);
     }
-  };
+    setIsProcessing(false);
+    setCurrentStep(0);
+  }
+
+      throw new Error(errorDetail)
+    }
+
+    //    Success — read GLB blob
+    const glb_blob    = await response.blob();
+    const projectId   = response.headers.get("X-Project-ID");
+    const genTime     = response.headers.get("X-Generation-Time");
+    const fileSize    = response.headers.get("X-File-Size");
+    const wallCount   = response.headers.get("X-Wall-Count");
+    const doorCount   = response.headers.get("X-Door-Count");
+    const windowCount = response.headers.get("X-Window-Count");
+    const glb_url     = URL.createObjectURL(glb_blob);
+
+    console.log(`GLB received: ${fileSize} bytes`);
+
+    setSuccess(true);
+
+    setTimeout(() => {
+      navigate(`/3d-viewer/${projectId}`, {
+        state: {
+          glb_url,
+          glb_blob,
+          metadata: {
+            project_id:      projectId,
+            generation_time: parseFloat(genTime),
+            file_size:       parseInt(fileSize),
+            wall_count:      parseInt(wallCount),
+            door_count:      parseInt(doorCount),
+            window_count:    parseInt(windowCount),
+          },
+        },
+      });
+    }, 1500);
+
+  } catch (err) {
+    //    Only show error if not already handled above
+    if (!upgradeOpen) {
+      setError(err.message || "Something went wrong. Please try again.");
+    }
+    setIsProcessing(false);
+    setCurrentStep(0);
+  }
+};
 
   // ── render ────────────────────────────────────────────────────────────────
 
@@ -485,6 +532,16 @@ export default function ThreeDService() {
           </motion.p>
         </div>
       </div>
+       <UpgradePopup
+        open={upgradeOpen}
+        onClose={() => setUpgradeOpen(false)}
+        title="3D Render Limit Reached"
+        message={
+          upgradeMessage ||
+          "You have used all your 3D renders for this month. Upgrade to Advanced (15/month) or Extreme (unlimited) to continue."
+        }
+      />
+
     </MainLayout>
   );
 }

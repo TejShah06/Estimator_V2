@@ -176,7 +176,7 @@ async def get_project_details(
     except HTTPException:
         raise
     except Exception as e:
-        print(f"❌ Error fetching project details: {str(e)}")
+        print(f"  Error fetching project details: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

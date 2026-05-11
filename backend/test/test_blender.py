@@ -19,7 +19,7 @@ if os.path.exists(blender_path):
             text=True,
             timeout=10
         )
-        print(f"✓ Success!")
+        print(f"  Success!")
         print(f"Output: {result.stdout}")
         print(f"Errors: {result.stderr}")
     except Exception as e:

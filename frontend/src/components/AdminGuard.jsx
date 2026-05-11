@@ -1,9 +1,9 @@
 
 import { Navigate } from "react-router-dom"
-
+import { getToken, getUser } from "@/utils/auth"
 export default function AdminGuard({ children }) {
-  const token = localStorage.getItem("token")
-  const role = localStorage.getItem("role")
+  const token = getToken()
+  const user = getUser()
 
   // Not logged in
   if (!token) {
@@ -11,7 +11,7 @@ export default function AdminGuard({ children }) {
   }
 
   // Logged in but not admin
-  if (role !== "admin") {
+  if (user?.role !== "admin") {
     return <Navigate to="/dashboard" replace />
   }
 

@@ -1,15 +1,9 @@
-// src/pages/admin/AdminUsers.jsx
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
 import {
-  Users,
-  Search,
-  Eye,
-  Trash2,
-  UserCheck,
-  UserX,
-  AlertCircle,
+  Users, Search, Eye, Trash2,
+  UserCheck, UserX, AlertCircle, Crown,
 } from "lucide-react"
 import {
   getAllUsers,
@@ -18,15 +12,42 @@ import {
 } from "../../services/adminApi"
 import AdminLayout from "../../layout/AdminLayout"
 
+// ── Plan Badge ─────────────────────────────────────────────────────────────
+const PlanBadge = ({ planName, status }) => {
+  const styles = {
+    basic:    "bg-gray-500/10  text-gray-400   border-gray-500/30",
+    advanced: "bg-cyan-500/10  text-cyan-400   border-cyan-500/30",
+    extreme:  "bg-purple-500/10 text-purple-400 border-purple-500/30",
+  }
+  const labels = {
+    basic:    "Basic",
+    advanced: "Advanced",
+    extreme:  "Extreme",
+  }
+
+  return (
+    <div className="flex flex-col items-center gap-0.5">
+      <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${
+        styles[planName] || styles.basic
+      }`}>
+        {labels[planName] || planName}
+      </span>
+      {status === "trial" && (
+        <span className="text-[10px] text-amber-400">trial</span>
+      )}
+    </div>
+  )
+}
+
 export default function AdminUsers() {
   const navigate = useNavigate()
-  const [users, setUsers] = useState([])
-  const [total, setTotal] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState("")
+  const [users,        setUsers]        = useState([])
+  const [total,        setTotal]        = useState(0)
+  const [loading,      setLoading]      = useState(true)
+  const [search,       setSearch]       = useState("")
   const [statusFilter, setStatusFilter] = useState("")
   const [actionLoading, setActionLoading] = useState(null)
-  const [deleteModal, setDeleteModal] = useState(null)
+  const [deleteModal,  setDeleteModal]  = useState(null)
 
   useEffect(() => {
     fetchUsers()
@@ -36,7 +57,7 @@ export default function AdminUsers() {
     setLoading(true)
     try {
       const res = await getAllUsers({
-        search: search || undefined,
+        search: search       || undefined,
         status: statusFilter || undefined,
       })
       setUsers(res.data.users)
@@ -113,6 +134,13 @@ export default function AdminUsers() {
                 <th className="text-left py-4 px-6 text-gray-400 text-sm font-semibold">User</th>
                 <th className="text-left py-4 px-6 text-gray-400 text-sm font-semibold hidden md:table-cell">Email</th>
                 <th className="text-center py-4 px-6 text-gray-400 text-sm font-semibold hidden lg:table-cell">Projects</th>
+                {/*   NEW Plan column */}
+                <th className="text-center py-4 px-6 text-gray-400 text-sm font-semibold hidden lg:table-cell">
+                  <div className="flex items-center justify-center gap-1">
+                    <Crown className="w-3.5 h-3.5 text-purple-400" />
+                    Plan
+                  </div>
+                </th>
                 <th className="text-center py-4 px-6 text-gray-400 text-sm font-semibold">Status</th>
                 <th className="text-center py-4 px-6 text-gray-400 text-sm font-semibold">Actions</th>
               </tr>
@@ -121,26 +149,17 @@ export default function AdminUsers() {
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="border-b border-slate-800/50">
-                    <td className="py-4 px-6">
-                      <div className="h-4 w-32 bg-slate-800 rounded animate-pulse" />
-                    </td>
-                    <td className="py-4 px-6 hidden md:table-cell">
-                      <div className="h-4 w-48 bg-slate-800 rounded animate-pulse" />
-                    </td>
-                    <td className="py-4 px-6 hidden lg:table-cell">
-                      <div className="h-4 w-16 bg-slate-800 rounded animate-pulse mx-auto" />
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="h-6 w-20 bg-slate-800 rounded animate-pulse mx-auto" />
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="h-8 w-24 bg-slate-800 rounded animate-pulse mx-auto" />
-                    </td>
+                    <td className="py-4 px-6"><div className="h-4 w-32 bg-slate-800 rounded animate-pulse" /></td>
+                    <td className="py-4 px-6 hidden md:table-cell"><div className="h-4 w-48 bg-slate-800 rounded animate-pulse" /></td>
+                    <td className="py-4 px-6 hidden lg:table-cell"><div className="h-4 w-16 bg-slate-800 rounded animate-pulse mx-auto" /></td>
+                    <td className="py-4 px-6 hidden lg:table-cell"><div className="h-6 w-20 bg-slate-800 rounded animate-pulse mx-auto" /></td>
+                    <td className="py-4 px-6"><div className="h-6 w-20 bg-slate-800 rounded animate-pulse mx-auto" /></td>
+                    <td className="py-4 px-6"><div className="h-8 w-24 bg-slate-800 rounded animate-pulse mx-auto" /></td>
                   </tr>
                 ))
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-gray-400">
+                  <td colSpan={6} className="py-12 text-center text-gray-400">
                     No users found
                   </td>
                 </tr>
@@ -153,9 +172,10 @@ export default function AdminUsers() {
                     transition={{ delay: index * 0.03 }}
                     className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors"
                   >
+                    {/* User */}
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 bg-cyan-500/20 rounded-full flex items-center justify-center">
+                        <div className="w-9 h-9 bg-cyan-500/20 rounded-full flex items-center justify-center flex-shrink-0">
                           <span className="text-cyan-400 font-bold text-sm">
                             {user.username.charAt(0).toUpperCase()}
                           </span>
@@ -166,9 +186,13 @@ export default function AdminUsers() {
                         </div>
                       </div>
                     </td>
+
+                    {/* Email */}
                     <td className="py-4 px-6 hidden md:table-cell">
                       <p className="text-gray-300 text-sm">{user.email}</p>
                     </td>
+
+                    {/* Projects */}
                     <td className="py-4 px-6 hidden lg:table-cell text-center">
                       <div className="flex items-center justify-center gap-2">
                         <span className="text-xs bg-purple-500/10 text-purple-400 px-2 py-1 rounded-full">
@@ -179,6 +203,16 @@ export default function AdminUsers() {
                         </span>
                       </div>
                     </td>
+
+                    {/*   Plan Badge */}
+                    <td className="py-4 px-6 hidden lg:table-cell text-center">
+                      <PlanBadge
+                        planName={user.subscription?.plan_name || "basic"}
+                        status={user.subscription?.status}
+                      />
+                    </td>
+
+                    {/* Status */}
                     <td className="py-4 px-6 text-center">
                       <span className={`text-xs px-3 py-1 rounded-full font-medium ${
                         user.is_active
@@ -188,9 +222,10 @@ export default function AdminUsers() {
                         {user.is_active ? "Active" : "Inactive"}
                       </span>
                     </td>
+
+                    {/* Actions */}
                     <td className="py-4 px-6">
                       <div className="flex items-center justify-center gap-2">
-                        {/* View */}
                         <button
                           onClick={() => navigate(`/admin/users/${user.id}`)}
                           className="p-2 rounded-lg hover:bg-blue-500/10 text-blue-400 transition-colors"
@@ -198,8 +233,6 @@ export default function AdminUsers() {
                         >
                           <Eye className="w-4 h-4" />
                         </button>
-
-                        {/* Toggle Status */}
                         <button
                           onClick={() => handleToggleStatus(user.id)}
                           disabled={actionLoading === user.id}
@@ -215,8 +248,6 @@ export default function AdminUsers() {
                             : <UserCheck className="w-4 h-4" />
                           }
                         </button>
-
-                        {/* Delete */}
                         <button
                           onClick={() => setDeleteModal(user)}
                           className="p-2 rounded-lg hover:bg-red-500/10 text-red-400 transition-colors"

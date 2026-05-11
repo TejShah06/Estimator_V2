@@ -36,17 +36,17 @@ def generate_3d_service_memory(floorplan_result: dict, project_id: int) -> dict:
         # ===== STAGE 1: Build Geometry =====
         logger.info("STAGE 1: Building geometry...")
         geometry = build_geometry(floorplan_result)
-        logger.info("✓ Geometry built")
+        logger.info("  Geometry built")
         
         # ===== STAGE 2: Build Mesh =====
         logger.info("STAGE 2: Building mesh with openings...")
         mesh_data = build_floorplan_mesh(geometry)
-        logger.info("✓ Mesh built")
+        logger.info("  Mesh built")
         
         # ===== STAGE 3: Build Adjacency Graph =====
         logger.info("STAGE 3: Building adjacency graph...")
         graph_data = build_adjacency_graph(geometry)
-        logger.info("✓ Graph built")
+        logger.info("  Graph built")
         
         # ===== STAGE 4: Save Geometry to Temp File =====
         logger.info("STAGE 4: Creating temporary geometry file...")
@@ -60,12 +60,12 @@ def generate_3d_service_memory(floorplan_result: dict, project_id: int) -> dict:
             temp_geometry_file = tmp_geo.name
             json.dump(mesh_data, tmp_geo, indent=2)
         
-        logger.info(f"✓ Temp geometry: {temp_geometry_file}")
+        logger.info(f"  Temp geometry: {temp_geometry_file}")
         
         # ===== STAGE 5: Blender Export to Memory =====
         logger.info("STAGE 5: Running Blender export to memory...")
         glb_bytes = run_blender_export_to_memory(temp_geometry_file)
-        logger.info(f"✓ GLB in memory: {len(glb_bytes)} bytes")
+        logger.info(f"  GLB in memory: {len(glb_bytes)} bytes")
         
         # ===== Calculate Stats =====
         generation_time = time.time() - t0
@@ -82,7 +82,7 @@ def generate_3d_service_memory(floorplan_result: dict, project_id: int) -> dict:
         
         # ===== Final Summary =====
         logger.info("=" * 80)
-        logger.info(f"✓ 3D GENERATION COMPLETE in {generation_time:.2f}s")
+        logger.info(f"  3D GENERATION COMPLETE in {generation_time:.2f}s")
         logger.info("=" * 80)
         logger.info(f"Project ID: {project_id}")
         logger.info(f"GLB Size: {len(glb_bytes)} bytes ({len(glb_bytes)/1024:.2f} KB)")
@@ -106,7 +106,7 @@ def generate_3d_service_memory(floorplan_result: dict, project_id: int) -> dict:
 
     except Exception as e:
         logger.error("=" * 80)
-        logger.error(f"❌ 3D GENERATION FAILED: {str(e)}")
+        logger.error(f"  3D GENERATION FAILED: {str(e)}")
         logger.error("=" * 80, exc_info=True)
         raise
         

@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 import logging
-
+from fastapi.responses import StreamingResponse
+from app.services.pdf_service import generate_manual_report_pdf
+from app.services.subscription_service import check_pdf_permission
 from app.api.deps import get_current_user, get_db
 from app.models.user import User
 from app.schemas.manual_estimation import ManualEstimationCreate
@@ -225,3 +227,94 @@ def get_estimation_report(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error fetching report: {str(e)}"
         )
+        
+@router.get("/manual/{estimation_id}/download-pdf")
+async def download_manual_report_pdf(
+    estimation_id: int,
+    db:            Session = Depends(get_db),
+    current_user:  User    = Depends(get_current_user),
+):
+    """Download manual estimation report as PDF"""
+
+    # ──  Check permission (Basic plan CAN download manual PDF) ────────────
+    allowed = check_pdf_permission(db, current_user.id, "manual")
+
+    if not allowed:
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "error":            "permission_denied",
+                "message":          "You don't have permission to download this report.",
+                "upgrade_required": False,
+            }
+        )
+
+    # ── Fetch estimation ────────────────────────────────────────────────────
+    from app.models.manual_estimation import ManualEstimation
+    estimation = db.query(ManualEstimation).filter(
+        ManualEstimation.id      == estimation_id,
+        ManualEstimation.user_id == current_user.id,
+    ).first()
+
+    if not estimation:
+        raise HTTPException(status_code=404, detail="Estimation not found")
+
+    # ── Build report dict ───────────────────────────────────────────────────
+    costs = estimation.costs or []
+    total_cost = sum(c.total_cost for c in costs) if costs else 0
+
+    report = {
+        "estimation_code": estimation.estimation_code,
+        "estimation_name": estimation.estimation_name,
+        "area_sqft":       estimation.area_sqft      or 0,
+        "area_m2":         estimation.area_m2        or 0,
+        "floors":          estimation.floors         or 1,
+        "mix_type":        estimation.mix_type,
+        "wastage_percent": estimation.wastage_percent or 0,
+        "mix_ratio":       {
+            "cement":    estimation.cement_ratio,
+            "sand":      estimation.sand_ratio,
+            "aggregate": estimation.aggregate_ratio,
+        } if estimation.cement_ratio else None,
+        "concrete_volume_m3": estimation.concrete_volume_m3,
+        "dry_volume_m3":      estimation.dry_volume_m3,
+        "materials": {
+            "steel_kg":      estimation.steel_kg,
+            "cement_bags":   estimation.cement_bags,
+            "sand_ton":      estimation.sand_ton,
+            "aggregate_ton": estimation.aggregate_ton,
+            "bricks":        estimation.bricks,
+            "paint_liters":  estimation.paint_liters,
+        },
+        "rates": {
+            "steel_per_kg":      estimation.steel_rate,
+            "cement_per_bag":    estimation.cement_rate,
+            "sand_per_ton":      estimation.sand_rate,
+            "aggregate_per_ton": estimation.aggregate_rate,
+            "brick_per_unit":    estimation.brick_rate,
+            "paint_per_liter":   estimation.paint_rate,
+        },
+        "costs": [
+            {
+                "material_type": c.material_type,
+                "total_cost":    c.total_cost,
+            }
+            for c in costs
+        ],
+        "total_cost": total_cost,
+    }
+
+    # ── Generate PDF ────────────────────────────────────────────────────────
+    pdf_buffer = generate_manual_report_pdf(report)
+    filename   = (
+        f"Manual_Report_"
+        f"{estimation.estimation_name or estimation_id}.pdf"
+    )
+
+    return StreamingResponse(
+        pdf_buffer,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"'
+        }
+    )

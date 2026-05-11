@@ -23,3 +23,7 @@ export const updateSettings = (data) => API.put("/admin/settings", data)
 
 // Logs
 export const getActivityLogs = (params) => API.get("/admin/logs", { params })
+
+// Subscription
+export const getSubscriptionStats   = ()       => API.get("/admin/subscription/stats")
+export const getUsersWithSubs       = (params) => API.get("/admin/subscription/users", { params })

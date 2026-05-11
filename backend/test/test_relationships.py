@@ -188,7 +188,7 @@ try:
     print("\n🚀 Ready to proceed to schemas and services!")
 
 except Exception as e:
-    print(f"\n❌ Test failed: {e}")
+    print(f"\n  Test failed: {e}")
     import traceback
     traceback.print_exc()
     db.rollback()

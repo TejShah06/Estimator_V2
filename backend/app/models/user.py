@@ -39,4 +39,20 @@ class User(Base):
         "FloorPlanElevationView",
         back_populates="uploaded_by",
         foreign_keys="FloorPlanElevationView.uploaded_by_user_id"
+    ) 
+    subscription = relationship(
+        "UserSubscription",
+        back_populates="user",
+        uselist=False,          # one-to-one
+        cascade="all, delete-orphan"
+    )
+    usage_records = relationship(
+        "UsageTracking",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
+    payments = relationship(
+        "PaymentHistory",
+        back_populates="user",
+        cascade="all, delete-orphan"
     )
