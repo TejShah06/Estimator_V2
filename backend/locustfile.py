@@ -12,12 +12,10 @@ logger = logging.getLogger(__name__)
 
 TEST_USERS = [
     {"identifier": f"loadtest{i}@test.com", "password": "LoadTest@123"}
-    for i in range(1, 11)
     for i in range(6, 17)
 ]
 
 ADMIN_USER = {
-    "identifier": "admin@floorplan3d.com",
     "identifier": "admin",
     "password":   "YOUR_ADMIN_PASSWORD_HERE"  # <-- REPLACE WITH ACTUAL ADMIN PASSWORD,
 }
