@@ -18,6 +18,8 @@ TEST_USERS = [
 
 ADMIN_USER = {
     "identifier": "admin@floorplan3d.com",
+    "identifier": "admin",
+    "password":   "YOUR_ADMIN_PASSWORD_HERE"  # <-- REPLACE WITH ACTUAL ADMIN PASSWORD,
 }
 
 
