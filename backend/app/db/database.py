@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL", "YOUR DB URL")
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 
